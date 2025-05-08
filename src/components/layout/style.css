@@ -1,0 +1,28 @@
+.gradient-underline {
+    position: relative;
+    text-decoration: none;
+  }
+  
+  .gradient-underline::after {
+    content: "";
+    position: absolute;
+    left: 16px; /* chỉnh lại nếu muốn gạch dài/ngắn hơn */
+    right: 16px;
+    bottom: 4px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #ff0080, #7928ca); /* chỉnh màu gradient ở đây */
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  
+  .gradient-underline:hover::after {
+    opacity: 1;
+  }
+  .css-ih2j17-MuiTypography-root{
+    font-weight: 600 !important;
+  }
+  .text-white {
+    font-weight: 600 !important;
+  }

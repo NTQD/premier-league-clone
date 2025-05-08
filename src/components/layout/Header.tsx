@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  AppBar, 
-  Box, 
-  Container, 
-  Drawer, 
-  IconButton, 
-  InputBase, 
+import {
+  AppBar,
+  Box,
+  Container,
+  Drawer,
+  IconButton,
+  InputBase,
   List,
   ListItem,
   ListItemText,
@@ -23,7 +23,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ClearIcon from '@mui/icons-material/Clear';
 
-import plLogo from '../../assets/pl-logo.svg';
+import plmainlogo from '../../assets/pl-main-logo.png';
+import './style.css';
 
 // Danh sách câu lạc bộ
 const clubs = [
@@ -116,11 +117,6 @@ const mainNavItems = [
     ]
   },
   {
-    text: 'Summer Series',
-    path: '/summerseries',
-    featured: true,
-  },
-  {
     text: 'More',
     submenu: [
       { text: 'History', path: '/history' },
@@ -137,6 +133,11 @@ const mainNavItems = [
       { text: 'Mornings Live', path: '/morningslive' },
       { text: 'PL Player', path: '/pl-player' },
     ]
+  },
+  {
+    text: 'Summer Series',
+    path: '/summerseries',
+    featured: true,
   },
 ];
 
@@ -247,9 +248,9 @@ const Header = () => {
       {/* Club navigation */}
       <nav className="bg-white border-b border-gray-200" role="menubar">
         <Container maxWidth={false} sx={{ maxWidth: '1440px' }}>
-          <Box 
-            onClick={handleClubsMenuClick} 
-            sx={{ 
+          <Box
+            onClick={handleClubsMenuClick}
+            sx={{
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -257,13 +258,51 @@ const Header = () => {
               fontWeight: 600
             }}
           >
-            <Typography component="h4" variant="subtitle1" sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography component="h4" variant="subtitle1" sx={{ display: 'flex', alignItems: 'center' , fontWeight : 700 }}>
               Club sites
               <OpenInNewIcon sx={{ ml: 1, fontSize: 16 }} />
             </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                overflowX: 'auto',
+                alignItems: 'center',
+                py: 1,
+                gap: 0.8,
+                '&::-webkit-scrollbar': { display: 'none' },
+                scrollbarWidth: 'none',
+              }}
+            >
+              {clubs.map((club) => (
+                <Box
+                  key={club.id}
+                  component="a"
+                  href={club.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    mx: 1,
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    transition: 'transform 0.2s',
+                    '&:hover': { transform: 'scale(1.1)' },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={`https://resources.premierleague.com/premierleague/badges/50/t${club.id}.png`}
+                    alt={club.name}
+                    sx={{ width: 32, height: 32 }}
+                  />
+                </Box>
+              ))}
+            </Box>
           </Box>
         </Container>
-        
+
         <Popover
           open={clubsMenuOpen}
           anchorEl={clubsMenuRef.current}
@@ -277,8 +316,8 @@ const Header = () => {
             horizontal: 'left',
           }}
           PaperProps={{
-            sx: { 
-              width: '100%', 
+            sx: {
+              width: '100%',
               maxWidth: '1440px',
               maxHeight: 460,
               ml: { xs: 0, md: 'auto' },
@@ -290,22 +329,22 @@ const Header = () => {
           }}
         >
           <Box sx={{ p: 2 }}>
-            <Box 
-              sx={{ 
-                display: 'grid', 
+            <Box
+              sx={{
+                display: 'grid',
                 gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)', lg: 'repeat(5, 1fr)' },
                 gap: 2
               }}
             >
               {clubs.map((club) => (
-                <Box 
-                  key={club.id} 
-                  component="a" 
+                <Box
+                  key={club.id}
+                  component="a"
                   href={club.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  sx={{ 
-                    display: 'flex', 
+                  sx={{
+                    display: 'flex',
                     alignItems: 'center',
                     textDecoration: 'none',
                     color: 'inherit',
@@ -316,7 +355,7 @@ const Header = () => {
                     }
                   }}
                 >
-                  <Box 
+                  <Box
                     component="img"
                     src={`https://resources.premierleague.com/premierleague/badges/50/t${club.id}.png`}
                     srcSet={`https://resources.premierleague.com/premierleague/badges/50/t${club.id}@x2.png 2x`}
@@ -333,23 +372,23 @@ const Header = () => {
       </nav>
 
       {/* Main navigation */}
-      <AppBar 
-        position="sticky" 
-        color="primary" 
-        sx={{ 
+      <AppBar
+        position="sticky"
+        color="primary"
+        sx={{
           boxShadow: 'none',
-          borderBottom: '1px solid rgba(255,255,255,0.1)'
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
       >
         <Container maxWidth={false} sx={{ maxWidth: '1440px' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
             {/* Logo */}
             <Link to="/" className="inline-block py-3">
-              <Box 
+              <Box
                 component="img"
-                src={plLogo}
+                src={plmainlogo}
                 alt="Premier League"
-                sx={{ 
+                sx={{
                   height: { xs: 40, md: 50 },
                   mr: { xs: 2, md: 4 }
                 }}
@@ -358,10 +397,10 @@ const Header = () => {
 
             {/* Main Nav - Desktop */}
             {!isMobile && (
-              <Box 
-                component="nav" 
-                sx={{ 
-                  display: 'flex', 
+              <Box
+                component="nav"
+                sx={{
+                  display: 'flex',
                   flexGrow: 1,
                   '& > div': {
                     position: 'relative',
@@ -370,13 +409,13 @@ const Header = () => {
                 id="mainNav"
               >
                 {mainNavItems.map((item, index) => (
-                  <Box 
+                  <Box
                     key={item.text}
                     className="dropdown-container"
-                    sx={{ 
+                    sx={{
                       position: 'relative',
                       '&:hover': {
-                        bgcolor: item.submenu ? 'rgba(255,255,255,0.1)' : 'transparent'
+                        bgcolor: item.submenu ? 'rgba(255,255,255,0.1)' : 'transparent',
                       },
                     }}
                   >
@@ -387,8 +426,8 @@ const Header = () => {
                       aria-haspopup={item.submenu ? 'true' : undefined}
                       tabIndex={0}
                       role="menuitem"
-                      sx={{ 
-                        px: 2, 
+                      sx={{
+                        px: 2,
                         py: 3,
                         color: 'white',
                         display: 'flex',
@@ -405,7 +444,7 @@ const Header = () => {
 
                     {item.submenu && (
                       <Box
-                        sx={{ 
+                        sx={{
                           display: activeDropdown === index ? 'block' : 'none',
                           position: 'absolute',
                           top: '100%',
@@ -421,14 +460,14 @@ const Header = () => {
                       >
                         <List disablePadding>
                           {item.submenu.map((subItem) => (
-                            <ListItem 
-                              key={subItem.text} 
-                              disablePadding 
-                              component={Link} 
+                            <ListItem
+                              key={subItem.text}
+                              disablePadding
+                              component={Link}
                               to={subItem.path}
                               onClick={() => setActiveDropdown(null)}
-                              sx={{ 
-                                pl: 2, 
+                              sx={{
+                                pl: 2,
                                 pr: 3,
                                 py: 1,
                                 color: 'text.primary',
@@ -439,8 +478,8 @@ const Header = () => {
                               }}
                               role="menuitem"
                             >
-                              <ListItemText 
-                                primary={subItem.text} 
+                              <ListItemText
+                                primary={subItem.text}
                                 primaryTypographyProps={{ variant: 'body2' }}
                               />
                             </ListItem>
@@ -456,10 +495,10 @@ const Header = () => {
             {/* Mobile menu button */}
             {isMobile && (
               <Box sx={{ ml: 'auto' }}>
-                <IconButton 
-                  color="inherit" 
-                  aria-label="open drawer" 
-                  edge="end" 
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  edge="end"
                   onClick={handleMobileMenuToggle}
                 >
                   <MenuIcon />
@@ -473,10 +512,11 @@ const Header = () => {
                 <IconButton color="inherit" aria-label="search" onClick={handleSearchToggle}>
                   <SearchIcon />
                 </IconButton>
-                
-                <Link 
-                  to="/signin" 
+
+                <Link
+                  to="/signin"
                   className="text-white hover:text-gray-200 ml-4 font-medium"
+                  style={{ textDecoration: 'none' }}
                 >
                   Sign in
                 </Link>
@@ -486,17 +526,17 @@ const Header = () => {
         </Container>
 
         {/* Sub Navigation */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             bgcolor: 'rgba(255,255,255,0.1)',
             display: { xs: 'none', md: 'block' },
           }}
         >
           <Container maxWidth={false} sx={{ maxWidth: '1440px' }}>
-            <Box 
-              component="nav" 
-              className="subNav" 
-              sx={{ 
+            <Box
+              component="nav"
+              className="subNav"
+              sx={{
                 display: 'flex',
                 overflowX: 'auto',
                 '&::-webkit-scrollbar': {
@@ -506,10 +546,11 @@ const Header = () => {
               }}
             >
               {subNavItems.map((item) => (
-                <Link 
+                <Link
                   key={item.text}
                   to={item.path}
-                  className="text-white hover:text-gray-200 text-sm whitespace-nowrap px-3 py-2"
+                  className="text-white hover:text-gray-200 text-sm whitespace-nowrap px-3 py-2 gradient-underline "
+                  style={{ textDecoration: 'none' }}
                 >
                   {item.text}
                 </Link>
@@ -519,8 +560,8 @@ const Header = () => {
         </Box>
 
         {/* Search Bar */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             height: searchOpen ? 'auto' : 0,
             overflow: 'hidden',
             transition: 'height 0.3s ease',
@@ -529,8 +570,8 @@ const Header = () => {
           }}
         >
           <Container maxWidth={false} sx={{ maxWidth: '1440px', py: 2 }}>
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 display: 'flex',
                 alignItems: 'center',
                 position: 'relative',
@@ -538,12 +579,12 @@ const Header = () => {
                 borderRadius: 1,
               }}
             >
-              <SearchIcon 
-                sx={{ 
+              <SearchIcon
+                sx={{
                   position: 'absolute',
                   left: 10,
                   color: 'text.secondary'
-                }} 
+                }}
               />
               <SearchInput
                 placeholder="Search for News, Players & Clubs"
@@ -552,8 +593,8 @@ const Header = () => {
                 fullWidth
               />
               {searchValue && (
-                <IconButton 
-                  size="small" 
+                <IconButton
+                  size="small"
                   sx={{ position: 'absolute', right: 10 }}
                   onClick={handleClearSearch}
                 >
@@ -580,7 +621,7 @@ const Header = () => {
         }}
       >
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box component="img" src={plLogo} alt="Premier League" sx={{ height: 36 }} />
+          <Box component="img" src={plmainlogo} alt="Premier League" sx={{ height: 36 }} />
           <IconButton color="inherit" onClick={handleMobileMenuToggle}>
             <CloseIcon />
           </IconButton>
@@ -588,19 +629,19 @@ const Header = () => {
 
         <List>
           {mainNavItems.map((item) => (
-            <ListItem 
+            <ListItem
               key={item.text}
               component={item.submenu ? 'div' : Link}
               to={!item.submenu ? item.path : undefined}
               onClick={!item.submenu ? handleMobileMenuToggle : undefined}
-              sx={{ 
+              sx={{
                 display: 'block',
                 py: 0,
               }}
             >
               <Box
                 sx={{
-                  px: 2, 
+                  px: 2,
                   py: 1.5,
                   fontWeight: item.active ? 700 : 500,
                   display: 'flex',
@@ -616,20 +657,20 @@ const Header = () => {
               {item.submenu && (
                 <List sx={{ bgcolor: 'rgba(0,0,0,0.2)', pb: 1 }}>
                   {item.submenu.map((subItem) => (
-                    <ListItem 
+                    <ListItem
                       key={subItem.text}
                       component={Link}
                       to={subItem.path}
                       onClick={handleMobileMenuToggle}
-                      sx={{ 
-                        pl: 4, 
+                      sx={{
+                        pl: 4,
                         py: 1,
                         color: 'rgba(255,255,255,0.9)',
                       }}
                     >
-                      <ListItemText 
-                        primary={subItem.text} 
-                        primaryTypographyProps={{ 
+                      <ListItemText
+                        primary={subItem.text}
+                        primaryTypographyProps={{
                           variant: 'body2',
                           sx: { fontWeight: 400 }
                         }}
@@ -643,8 +684,8 @@ const Header = () => {
 
           <ListItem sx={{ pt: 2 }}>
             <Box component="form" sx={{ width: '100%', position: 'relative' }}>
-              <IconButton 
-                sx={{ 
+              <IconButton
+                sx={{
                   position: 'absolute',
                   top: '50%',
                   left: 10,
