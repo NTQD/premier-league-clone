@@ -8,6 +8,7 @@ import News from './pages/News';
 import Video from './pages/Video';
 import Clubs from './pages/Clubs';
 import Players from './pages/Players';
+import PlayerProfile from './pages/profile';
 
 function App() {
   return (
@@ -23,6 +24,8 @@ function App() {
             <Route path="/video" element={<Video />} />
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/players" element={<Players />} />
+            <Route path="/players/:id" element={<PlayerProfile />} />
+            {/* Add more routes as needed */}
           </Routes>
         </main>
         <Footer />
