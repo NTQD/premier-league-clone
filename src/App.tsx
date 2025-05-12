@@ -10,6 +10,7 @@ import Clubs from './pages/Clubs';
 import Players from './pages/Players';
 import PlayerProfile from './pages/profile';
 import Results from './pages/Results';
+import Stats from './pages/Stats';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/fixtures" element={<Fixtures />} />
             <Route path="/tables" element={<Table />} />
+            <Route path="/stats" element={<Stats />} />
             <Route path="/news" element={<News />} />
             <Route path="/video" element={<Video />} />
             <Route path="/clubs" element={<Clubs />} />
