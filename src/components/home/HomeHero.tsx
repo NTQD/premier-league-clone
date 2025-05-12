@@ -1,10 +1,16 @@
-import { Box, Container, Grid, Typography, Button, Paper } from '@mui/material';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-
+import { Chip, Box, Container, Grid, Typography, Button, Paper } from '@mui/material';
+import { Link } from 'react-router-dom';
+const featured = {
+  image: 'https://resources.premierleague.pulselive.com/photo-resources/2025/05/12/ecfa828d-1c41-436e-b9ba-7627d4e77cbb/1-NEW-WWL-MW36-LEAD.jpg?width=764&height=430',
+  tag: 'Feature',
+  title: 'Premier League weekend review: What we learned',
+  desc: "Alex Keble on the key takeaways, including Villa's important victory and Arsenal's Anfield comeback",
+  link: '/news/4308862',
+};
 const HomeHero = () => {
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         bgcolor: 'primary.light',
         pt: { xs: 4, md: 6 },
         pb: { xs: 6, md: 8 },
@@ -12,24 +18,29 @@ const HomeHero = () => {
       }}
     >
       <Container maxWidth={false} sx={{ maxWidth: 1440 }}>
-        <Grid container spacing={6}>
+        <Grid container spacing={6} alignItems="stretch">
           {/* Hero Text */}
           <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Typography 
-              variant="h2" 
-              sx={{ 
-                color: 'white', 
+            <Typography
+              variant="h2"
+              sx={{
                 fontWeight: 700,
                 mb: 2,
-                fontSize: { xs: '2.25rem', md: '3rem' } 
+                fontSize: { xs: '2.25rem', md: '3rem' },
+                background: 'linear-gradient(90deg, #ff0080, #7928ca)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent',
+                display: 'inline-block',
               }}
             >
               Welcome to the Premier League
             </Typography>
-            <Typography 
+            <Typography
               variant="h5"
-              sx={{ 
-                color: 'white', 
+              sx={{
+                color: 'white',
                 mb: 4,
                 opacity: 0.9,
                 fontWeight: 400,
@@ -39,12 +50,14 @@ const HomeHero = () => {
               The most competitive league in the world with the best players and passionate fans
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 color="secondary"
                 size="large"
-                sx={{ 
-                  px: 4, 
+                component={Link}
+                to="/fixtures"
+                sx={{
+                  px: 4,
                   py: 1.5,
                   fontWeight: 600,
                   borderRadius: '4px',
@@ -52,11 +65,13 @@ const HomeHero = () => {
               >
                 View Fixtures
               </Button>
-              <Button 
+              <Button
                 variant="outlined"
                 size="large"
-                sx={{ 
-                  px: 4, 
+                component={Link}
+                to="/tables"
+                sx={{
+                  px: 4,
                   py: 1.5,
                   color: 'white',
                   borderColor: 'rgba(255,255,255,0.5)',
@@ -72,79 +87,94 @@ const HomeHero = () => {
               </Button>
             </Box>
           </Grid>
-          
           {/* Featured Content */}
-          <Grid item xs={12} md={7}>
-            <Paper 
-              elevation={6}
-              sx={{ 
-                borderRadius: '8px',
+          {/* Ô lớn bên trái */}
+          <Grid item xs={12} md={7} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: '12px',
                 overflow: 'hidden',
                 height: '100%',
-                minHeight: 400
+                bgcolor: 'transparent',
+                boxShadow: 'none',
               }}
             >
-              {/* This would be a slider or featured video in the real site */}
-              <Box 
-                sx={{ 
-                  bgcolor: '#111',
-                  height: '100%',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative'
-                }}
+              <a
+                href={featured.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none', display: 'block', borderRadius: 16, overflow: 'hidden' }}
               >
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    color: 'rgba(255,255,255,0.7)',
-                    position: 'absolute'
+                <Box
+                  sx={{
+                    position: 'relative',
+                    height: { xs: 250, md: 350 },
+                    width: '100%',
+                    background: `url(${featured.image}) center/cover no-repeat`,
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    transition: 'transform 0.3s cubic-bezier(.4,2,.6,1)',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                    },
                   }}
                 >
-                  Featured Video Content
-                </Typography>
-              </Box>
+                  {/* Tag */}
+                  <Chip
+                    label={featured.tag}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      left: 16,
+                      bgcolor: '#00e396',
+                      color: '#111',
+                      fontWeight: 700,
+                      fontSize: 14,
+                    }}
+                  />
+                  {/* Overlay + Title */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 0,
+                      bottom: 0,
+                      width: '100%',
+                      bgcolor: 'rgba(44,0,60,0.85)',
+                      p: 3,
+                      pt: 2,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 900,
+                        mb: 1,
+                        textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {featured.title}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: '#fff',
+                        opacity: 0.85,
+                        fontWeight: 400,
+                        textShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      {featured.desc}
+                    </Typography>
+                  </Box>
+                </Box>
+              </a>
             </Paper>
           </Grid>
         </Grid>
-        
-        {/* Quick Links */}
-        <Box sx={{ mt: 6 }}>
-          <Grid container spacing={3}>
-            {['Latest News', 'Match Highlights', 'Player Interviews', 'Fantasy Premier League'].map((item, index) => (
-              <Grid item xs={6} md={3} key={index}>
-                <Box 
-                  sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.1)',
-                    p: 2,
-                    borderRadius: '4px',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      bgcolor: 'rgba(255,255,255,0.15)',
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  <Typography 
-                    variant="subtitle1" 
-                    sx={{ 
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    {item}
-                    <ArrowForwardIcon sx={{ fontSize: '1rem' }} />
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
       </Container>
     </Box>
   );
