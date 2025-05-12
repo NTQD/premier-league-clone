@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import Partners from '../components/Partners';
 
 // Mock news data
 const mockNews = [
@@ -401,6 +402,7 @@ const News = () => {
           ))}
         </Stack>
       </Container>
+      <Partners />
     </Box>
   );
 };

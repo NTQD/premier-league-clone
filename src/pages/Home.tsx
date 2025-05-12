@@ -1,5 +1,6 @@
 import { Box, Container, Grid, Typography, Card, CardContent, CardMedia, Button, Tabs, Tab } from '@mui/material';
 import HomeHero from '../components/home/HomeHero';
+import Partners from '../components/Partners';
 
 const Home = () => {
   return (
@@ -208,6 +209,7 @@ const Home = () => {
           </Grid>
         </Grid>
       </Container>
+      <Partners />
     </Box>
   );
 };
