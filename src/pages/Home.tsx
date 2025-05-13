@@ -1,7 +1,6 @@
 import { Avatar, Chip, Box, Container, Grid, Typography, Card, CardContent, CardMedia, Button } from '@mui/material';
 import HomeHero from '../components/home/HomeHero';
 import Partners from '../components/Partners';
-
 import { Link } from 'react-router-dom';
 
 
@@ -516,7 +515,6 @@ const Home = () => {
           </Grid>
         </Grid>
       </Container>
-      <Partners />
       {/* Latest News Section */}
       <Box sx={{ bgcolor: '#f5f5f5', py: 6 }}>
         <Container maxWidth={false} sx={{ maxWidth: 1440 }}>
