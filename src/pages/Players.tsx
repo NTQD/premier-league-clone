@@ -4,6 +4,7 @@ import ReplayIcon from '@mui/icons-material/Replay';
 import SearchIcon from '@mui/icons-material/Search';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, Paper } from '@mui/material';
 import { Link } from 'react-router-dom';
+import Partners from '../components/Partners';
 const seasons = ['2024/25', '2023/24', '2022/23'];
 const clubs = ['All Clubs', 'Hà Nội', 'HAGL', 'Bình Dương', 'Viettel'];
 
@@ -240,6 +241,7 @@ const Players = () => {
       ) : (
         <PlayerTable players={filteredPlayers} />
       )}
+      <Partners />
     </Container>
   );
 };

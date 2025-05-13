@@ -5,6 +5,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import StadiumIcon from '@mui/icons-material/Stadium';
 import { useState } from 'react';
 import plmainlogo from '../assets/image-removebg-preview.png';
+import Partners from '../components/Partners';
 
 const resultsData = [
     {
@@ -222,6 +223,7 @@ const Results = () => {
                     </Box>
                 ))}
             </Container>
+            <Partners />
         </Box>
     );
 };

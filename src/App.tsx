@@ -11,6 +11,7 @@ import Players from './pages/Players';
 import PlayerProfile from './pages/profile';
 import Results from './pages/Results';
 import Stats from './pages/Stats';
+import Awards from './pages/Awards';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="/players" element={<Players />} />
             <Route path="/players/:id" element={<PlayerProfile />} />
             <Route path="/results" element={<Results />} />
+            <Route path="/awards" element={<Awards />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>

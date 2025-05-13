@@ -16,6 +16,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import Partners from '../components/Partners';
 
 // Mock data for videos
 const featuredVideos = [
@@ -540,6 +541,7 @@ const Video = () => {
           <VideoCategory key={category.id} category={category} />
         ))}
       </Container>
+      <Partners />
     </Box>
   );
 };

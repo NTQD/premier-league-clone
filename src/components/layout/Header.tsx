@@ -14,7 +14,8 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-  styled
+  styled,
+  Button
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -442,6 +443,18 @@ const Header = () => {
                       {item.submenu && <ExpandMoreIcon sx={{ ml: 0.5, fontSize: 18 }} />}
                     </Box>
 
+                    {item.text === 'Awards' && !item.submenu && (
+                      <Box
+                        component={Link}
+                        to="/awards"
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          zIndex: 2,
+                        }}
+                      />
+                    )}
+
                     {item.submenu && (
                       <Box
                         sx={{
@@ -513,12 +526,28 @@ const Header = () => {
                   <SearchIcon />
                 </IconButton>
 
-                <Link
-                  to="/signin"
-                  className="text-white hover:text-gray-200 ml-4 font-medium"
-                  style={{ textDecoration: 'none' }}
-                >
-                  Sign in
+                <Link to="/signin" style={{ textDecoration: 'none', marginLeft: 16 }}>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      bgcolor: '#fff',
+                      color: '#000',
+                      fontWeight: 900,
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1.2,
+                      fontSize: '1.1rem',
+                      boxShadow: '0 2px 8px 0 rgba(55,0,60,0.08)',
+                      transition: 'all 0.2s',
+                      display: 'inline-block',
+                      '&:hover': {
+                        bgcolor: '#37003c',
+                        color: '#fff',
+                      },
+                    }}
+                  >
+                    Sign in
+                  </Button>
                 </Link>
               </Box>
             )}
@@ -653,6 +682,18 @@ const Header = () => {
                 <Typography variant="body1">{item.text}</Typography>
                 {item.submenu && <ExpandMoreIcon />}
               </Box>
+
+              {item.text === 'Awards' && !item.submenu && (
+                <Box
+                  component={Link}
+                  to="/awards"
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 2,
+                  }}
+                />
+              )}
 
               {item.submenu && (
                 <List sx={{ bgcolor: 'rgba(0,0,0,0.2)', pb: 1 }}>

@@ -3,6 +3,9 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import StadiumIcon from '@mui/icons-material/Stadium';
 import { styled } from '@mui/material/styles';
 import { CardProps } from '@mui/material';
+import Partners from '../components/Partners';
+import SearchIcon from '@mui/icons-material/Search';
+import { useState } from 'react';
 
 interface Club {
   name: string;
@@ -453,114 +456,176 @@ const VisitIcon = styled(ArrowForwardIosIcon)(({ theme }) => ({
 }));
 
 const Clubs = () => {
+  const [search, setSearch] = useState('');
+
   return (
-    <Container maxWidth={false} sx={{ maxWidth: 1440, py: 6 }}>
-      <Typography 
-        variant="h3" 
-        component="h1" 
-        gutterBottom 
-        sx={{ 
-          fontWeight: 'bold',
+    <Box sx={{ width: '100%', bgcolor: 'white', minHeight: '100vh' }}>
+      {/* Header với gradient, chữ lớn và ô tìm kiếm */}
+      <Box
+        sx={{
+          width: '100%',
+          minHeight: 180,
+          background: 'linear-gradient(120deg, #4fc3f7 0%, #7b5cff 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          px: { xs: 1, md: 3 },
           mb: 4,
-          textAlign: 'center',
-          color: '#37003c'
         }}
       >
-        Premier League Clubs
-      </Typography>
-      
-      <Grid container spacing={3}>
-        {clubs.map((club) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={club.name}>
-            <StyledCard hovercolor={club.primaryColor}>
-              <a href={club.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                <ClubLogo className="club-logo">
-                  <img src={club.imageUrl} alt={club.name} />
-                </ClubLogo>
-                <ClubInfo className="club-info">
-                  <Typography variant="h6" component="div" className="club-name">
-                    {club.name}
-                  </Typography>
-                  <Typography variant="body2" className="stadium-name" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                    {/* <StadiumIcon sx={{ fontSize: 18, color: '#37003c', mr: 0.5 }} /> */}
-                    {/* {club.stadium} */}
-                  </Typography>
-                </ClubInfo>
-              </a>
-            </StyledCard>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Box sx={{ mt: 8 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            color: 'white',
+            fontWeight: 900,
+            fontSize: { xs: '2.5rem', md: '4rem' },
+            lineHeight: 1.1,
+            mr: 2,
+          }}
+        >
+          Clubs
+        </Typography>
+        <Box sx={{ flex: 1, display: 'flex', justifyContent: 'left' }}>
+          <Box
+            sx={{
+              bgcolor: 'white',
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              width: { xs: '100%', md: 400 },
+              boxShadow: 2,
+              height: 48,
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Search Clubs"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                border: 'none',
+                outline: 'none',
+                fontSize: 18,
+                padding: '0 16px',
+                flex: 1,
+                background: 'transparent',
+                color: '#7b5cff',
+                height: 48,
+              }}
+            />
+            {/* <Box sx={{ height: 32, width: 1, bgcolor: '#e0e0e0', mx: 1 }} /> */}
+            <SearchIcon sx={{ color: '#37003c', fontSize: 24, mr: 2, cursor: 'pointer' }} />
+          </Box>
+        </Box>
+      </Box>
+      <Container maxWidth={false} sx={{ maxWidth: 1440, py: 6 }}>
         <Typography 
-          variant="h4" 
-          component="h2" 
+          variant="h3" 
+          component="h1" 
           gutterBottom 
           sx={{ 
-            fontWeight: 'bold', 
+            fontWeight: 'bold',
             mb: 4,
+            textAlign: 'center',
             color: '#37003c'
           }}
         >
-          All-time Premier League Clubs
+          Premier League Clubs
         </Typography>
-        <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 'none' }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, color: '#37003c' }}>Club</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, color: '#37003c' }}>Stadium</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, color: '#37003c' }} align="center">Visit</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {allTimeClubs.map((club) => (
-                <StyledTableRow key={club.name}>
-                  <TableCell className="club-cell">
-                    <a href={club.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box 
-                          component="img" 
-                          src={club.imageUrl} 
-                          alt={club.name} 
-                          sx={{ 
-                            width: 28, 
-                            height: 28, 
-                            mr: 1, 
-                            borderRadius: '50%', 
-                            border: '1px solid #eee', 
-                            background: '#fff',
-                            transition: 'transform 0.2s ease',
-                            '&:hover': {
-                              transform: 'scale(1.1)'
-                            }
-                          }} 
-                        />
-                        <Typography variant="body1" sx={{ fontWeight: 500, transition: 'color 0.2s ease' }} className="club-name">
-                          {club.name}
-                        </Typography>
-                      </Box>
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <StadiumIcon sx={{ fontSize: 18, color: '#37003c', mr: 0.5 }} />
-                      {club.stadium}
+        
+        <Grid container spacing={3}>
+          {clubs.map((club) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={club.name}>
+              <StyledCard hovercolor={club.primaryColor}>
+                <a href={club.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <ClubLogo className="club-logo">
+                    <img src={club.imageUrl} alt={club.name} />
+                  </ClubLogo>
+                  <ClubInfo className="club-info">
+                    <Typography variant="h6" component="div" className="club-name">
+                      {club.name}
                     </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <a href={club.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                      <VisitIcon className="visit-icon" />
-                    </a>
-                  </TableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    </Container>
+                    <Typography variant="body2" className="stadium-name" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                      {/* <StadiumIcon sx={{ fontSize: 18, color: '#37003c', mr: 0.5 }} /> */}
+                      {/* {club.stadium} */}
+                    </Typography>
+                  </ClubInfo>
+                </a>
+              </StyledCard>
+            </Grid>
+          ))}
+        </Grid>
+
+        <Box sx={{ mt: 8 }}>
+          <Typography 
+            variant="h4" 
+            component="h2" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 'bold', 
+              mb: 4,
+              color: '#37003c'
+            }}
+          >
+            All-time Premier League Clubs
+          </Typography>
+          <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 'none' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: 16, color: '#37003c' }}>Club</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: 16, color: '#37003c' }}>Stadium</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: 16, color: '#37003c' }} align="center">Visit</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {allTimeClubs.map((club) => (
+                  <StyledTableRow key={club.name}>
+                    <TableCell className="club-cell">
+                      <a href={club.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box 
+                            component="img" 
+                            src={club.imageUrl} 
+                            alt={club.name} 
+                            sx={{ 
+                              width: 28, 
+                              height: 28, 
+                              mr: 1, 
+                              borderRadius: '50%', 
+                              border: '1px solid #eee', 
+                              background: '#fff',
+                              transition: 'transform 0.2s ease',
+                              '&:hover': {
+                                transform: 'scale(1.1)'
+                              }
+                            }} 
+                          />
+                          <Typography variant="body1" sx={{ fontWeight: 500, transition: 'color 0.2s ease' }} className="club-name">
+                            {club.name}
+                          </Typography>
+                        </Box>
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <StadiumIcon sx={{ fontSize: 18, color: '#37003c', mr: 0.5 }} />
+                        {club.stadium}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <a href={club.website} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                        <VisitIcon className="visit-icon" />
+                      </a>
+                    </TableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+        <Partners />
+      </Container>
+    </Box>
   );
 };
 

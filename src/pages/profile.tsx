@@ -3,6 +3,7 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import { useState } from 'react';
 import ReplayIcon from '@mui/icons-material/Replay';
+import Partners from '../components/Partners';
 
 
 type PlayerProfileData = {
@@ -346,6 +347,7 @@ const PlayerProfile = () => {
           </Grid>
         </Grid>
       </Container>
+      <Partners />
     </Box>
   );
 };
