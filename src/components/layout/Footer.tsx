@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
-import { 
-  Box, 
-  Container, 
-  Grid, 
-  Typography, 
-  List, 
-  ListItem, 
-  ListItemText,
+import {
+  Box,
+  Container,
+  Grid,
+  Typography,
+  List,
+  ListItem,
   Divider
 } from '@mui/material';
 import FacebookIcon from '@mui/icons-material/Facebook';
@@ -14,7 +13,8 @@ import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import YouTubeIcon from '@mui/icons-material/YouTube';
 
-import plLogo from '../../assets/pl-logo.svg';
+import plmainlogo from '../../assets/premier-league-logo-header-full.png';
+
 
 const footerLinks = [
   {
@@ -60,21 +60,45 @@ const footerLinks = [
       { text: 'Careers', path: '/careers' },
       { text: 'FAQs', path: '/faqs' },
     ]
-  }
+  },
+  {
+    title: 'Social',
+    links: [
+      { text: 'PL on YouTube', path: 'https://www.youtube.com/premierleague' },
+      { text: 'PL on Tik Tok', path: 'https://www.tiktok.com/@premierleague' },
+      { text: 'PL on Facebook', path: 'https://www.facebook.com/premierleague' },
+      { text: 'FPL on Facebook', path: 'https://www.facebook.com/OfficialFPL/' },
+      { text: 'PL on X', path: 'https://twitter.com/premierleague' },
+      { text: 'FPL on X', path: 'https://twitter.com/OfficialFPL' },
+      { text: 'PL Communities on X', path: 'https://twitter.com/PLCommunities' },
+      { text: 'PL Youth on X', path: 'https://twitter.com/PLYouth' },
+      { text: 'PL on Instagram', path: 'https://www.instagram.com/premierleague' },
+      { text: 'PL on Whatsapp', path: 'https://preml.ge/plwhatsapp' },
+      { text: 'PL USA on X', path: 'https://twitter.com/PLinUSA' },
+      { text: 'PL USA on Instagram', path: 'https://www.instagram.com/plinusa/' },
+      { text: 'La Premier on Instagram', path: 'https://www.instagram.com/lapremierleague/' },
+      { text: 'PL India on X', path: 'https://twitter.com/PLforIndia' },
+      { text: 'PL India on Instagram', path: 'https://www.instagram.com/plforindia/' },
+      { text: 'PL Arabic on X', path: 'https://twitter.com/PLinArabic' },
+      { text: 'PL Arabic on Instagram', path: 'https://www.instagram.com/plinarabic/' },
+      { text: 'La Premier on TikTok', path: 'https://www.tiktok.com/@lapremierleague' },
+      { text: 'PL Music on Spotify', path: 'https://open.spotify.com/user/plplaylists' },
+    ]
+  },
 ];
 
 const Footer = () => {
   return (
     <Box sx={{ bgcolor: 'primary.main', color: 'white', mt: 4 }}>
       <Container maxWidth={false} sx={{ maxWidth: 1440, py: 6 }}>
-        <Grid container spacing={4}>
+        <Grid container spacing={4} columns={18}>
           {/* Logo and social links */}
-          <Grid item xs={12} md={3}>
+          <Grid item xs={18} md={3}>
             <Box className="flex flex-col space-y-4">
-              <img 
-                src={plLogo} 
-                alt="Premier League" 
-                className="h-16 w-auto" 
+              <img
+                src={plmainlogo}
+                alt="Premier League"
+                className="h-16 w-auto max-w-full object-contain"
               />
               <Box className="flex space-x-4 mt-4">
                 <FacebookIcon className="text-white hover:text-pl-turquoise cursor-pointer" />
@@ -84,14 +108,14 @@ const Footer = () => {
               </Box>
             </Box>
           </Grid>
-          
+
           {/* Footer Links */}
           {footerLinks.map((section) => (
-            <Grid item xs={6} sm={3} md={2} key={section.title}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 700, 
+            <Grid item xs={18} sm={6} md={3} key={section.title}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
                   mb: 2,
                   fontSize: '1rem'
                 }}
@@ -101,9 +125,10 @@ const Footer = () => {
               <List disablePadding>
                 {section.links.map((link) => (
                   <ListItem key={link.text} disablePadding sx={{ mb: 1 }}>
-                    <Link 
-                      to={link.path} 
-                      className="text-white hover:text-pl-turquoise text-sm"
+                    <Link
+                      to={link.path}
+                      className=" hover:text-pl-turquoise text-sm"
+                      style={{ textDecoration: 'none', color: '#ccc' }}
                     >
                       {link.text}
                     </Link>
@@ -113,51 +138,26 @@ const Footer = () => {
             </Grid>
           ))}
         </Grid>
-        
-        {/* Sponsors */}
-        <Box sx={{ mt: 6, mb: 4 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, color: 'rgba(255,255,255,0.7)' }}>
-            Official Partners
-          </Typography>
-          <Grid container spacing={3}>
-            {/* Sponsor logos would go here */}
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Grid item xs={4} sm={2} key={index}>
-                <Box 
-                  sx={{ 
-                    height: 60, 
-                    bgcolor: 'rgba(255,255,255,0.1)', 
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 1
-                  }}
-                >
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
-                    Sponsor {index + 1}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-        
+
         <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 4 }} />
-        
+
         {/* Copyright */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
             © PREMIER LEAGUE {new Date().getFullYear()}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-            <Link to="/terms" className="text-gray-400 hover:text-white text-sm">
+            <Link to="/terms" className="text-gray-400 hover:text-white text-sm"
+              style={{ textDecoration: 'none' }}>
               Terms & Conditions
             </Link>
-            <Link to="/privacy" className="text-gray-400 hover:text-white text-sm">
-              Privacy Policy
+            <Link to="/privacy" className="text-gray-400 hover:text-white text-sm"
+              style={{ textDecoration: 'none' }}>
+              • Privacy Policy
             </Link>
-            <Link to="/cookies" className="text-gray-400 hover:text-white text-sm">
-              Cookie Policy
+            <Link to="/cookies" className="text-gray-400 hover:text-white text-sm"
+              style={{ textDecoration: 'none' }}>
+              • Cookie Policy
             </Link>
           </Box>
         </Box>
