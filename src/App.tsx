@@ -12,6 +12,7 @@ import PlayerProfile from './pages/profile';
 import Results from './pages/Results';
 import Stats from './pages/Stats';
 import Awards from './pages/Awards';
+import Thongtin from './pages/QuanLyThongTin';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/players/:id" element={<PlayerProfile />} />
             <Route path="/results" element={<Results />} />
             <Route path="/awards" element={<Awards />} />
+            <Route path="/thongtin" element={<Thongtin />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>
