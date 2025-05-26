@@ -13,6 +13,7 @@ import Results from './pages/Results';
 import Stats from './pages/Stats';
 import Awards from './pages/Awards';
 import Thongtin from './pages/QuanLyThongTin';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
             <Route path="/results" element={<Results />} />
             <Route path="/awards" element={<Awards />} />
             <Route path="/thongtin" element={<Thongtin />} />
+            <Route path="/login" element={<Login />} />
             {/* Add more routes as needed */}
           </Routes>
         </main>

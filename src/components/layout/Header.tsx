@@ -526,7 +526,7 @@ const Header = () => {
                   <SearchIcon />
                 </IconButton>
 
-                <Link to="/thongtin" style={{ textDecoration: 'none', marginLeft: 16 }}>
+                <Link to="/login" style={{ textDecoration: 'none', marginLeft: 16 }}>
                   <Button
                     variant="contained"
                     sx={{
