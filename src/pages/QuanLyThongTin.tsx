@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Tabs, Tab, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Card, CardContent, CardMedia } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Partners from '../components/Partners';
+import { clubService, Club } from '../services/clubService';
+import { stadiumService, Stadium } from '../services/stadiumService';
 
 function TabPanel(props: any) {
   const { children, value, index, ...other } = props;
@@ -160,30 +162,166 @@ const QuanLyThongTin = () => {
     if (editIndex === idx) setEditIndex(null);
   };
 
-  const handleClubSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editClubIndex !== null) {
-      const updated = [...clubs];
-      updated[editClubIndex] = clubForm;
-      setClubs(updated);
-      setEditClubIndex(null);
-    } else {
-      setClubs([...clubs, clubForm]);
+  const fetchClubs = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/clubs');
+      if (response.ok) {
+        const data = await response.json();
+        setClubs(data);
+      } else {
+        console.error('Failed to fetch clubs');
+      }
+    } catch (error) {
+      console.error('Error fetching clubs:', error);
     }
-    setClubForm(initialClubForm);
   };
 
-  const handleStadiumSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editStadiumIndex !== null) {
-      const updated = [...stadiums];
-      updated[editStadiumIndex] = stadiumForm;
-      setStadiums(updated);
-      setEditStadiumIndex(null);
-    } else {
-      setStadiums([...stadiums, stadiumForm]);
+  const createClub = async (clubData: any) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/clubs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(clubData),
+      });
+      if (response.ok) {
+        const newClub = await response.json();
+        setClubs([...clubs, newClub]);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error creating club:', error);
+      return false;
     }
-    setStadiumForm(initialStadiumForm);
+  };
+
+  const updateClub = async (id: number, clubData: any) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/clubs/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(clubData),
+      });
+      if (response.ok) {
+        const updatedClub = await response.json();
+        setClubs(clubs.map(club => club.id === id ? updatedClub : club));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error updating club:', error);
+      return false;
+    }
+  };
+
+  const deleteClub = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/clubs/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setClubs(clubs.filter(club => club.id !== id));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error deleting club:', error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchClubs();
+  }, []);
+
+  const handleClubSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clubData: Club = {
+      name: clubForm.name,
+      foundedYear: parseInt(clubForm.founded),
+      manager: clubForm.manager,
+      location: clubForm.location,
+      website: clubForm.website,
+      stadium: {
+        id: parseInt(clubForm.stadium)
+      }
+    };
+
+    try {
+      if (editClubIndex !== null) {
+        const clubId = clubs[editClubIndex].id!;
+        await clubService.updateClub(clubId, clubData);
+        const updatedClubs = await clubService.getAllClubs();
+        setClubs(updatedClubs);
+        setEditClubIndex(null);
+      } else {
+        await clubService.createClub(clubData);
+        const updatedClubs = await clubService.getAllClubs();
+        setClubs(updatedClubs);
+      }
+      setClubForm(initialClubForm);
+    } catch (error) {
+      console.error('Error saving club:', error);
+    }
+  };
+
+  const handleDeleteClub = async (idx: number) => {
+    try {
+      const clubId = clubs[idx].id!;
+      await clubService.deleteClub(clubId);
+      const updatedClubs = await clubService.getAllClubs();
+      setClubs(updatedClubs);
+      if (editClubIndex === idx) {
+        setEditClubIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting club:', error);
+    }
+  };
+
+  const handleStadiumSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const stadiumData: Stadium = {
+      name: stadiumForm.name,
+      capacity: parseInt(stadiumForm.capacity),
+      location: stadiumForm.location,
+      yearBuilt: parseInt(stadiumForm.yearBuilt)
+    };
+
+    try {
+      if (editStadiumIndex !== null) {
+        const stadiumId = stadiums[editStadiumIndex].id!;
+        await stadiumService.updateStadium(stadiumId, stadiumData);
+        const updatedStadiums = await stadiumService.getAllStadiums();
+        setStadiums(updatedStadiums);
+        setEditStadiumIndex(null);
+      } else {
+        await stadiumService.createStadium(stadiumData);
+        const updatedStadiums = await stadiumService.getAllStadiums();
+        setStadiums(updatedStadiums);
+      }
+      setStadiumForm(initialStadiumForm);
+    } catch (error) {
+      console.error('Error saving stadium:', error);
+    }
+  };
+
+  const handleDeleteStadium = async (idx: number) => {
+    try {
+      const stadiumId = stadiums[idx].id!;
+      await stadiumService.deleteStadium(stadiumId);
+      const updatedStadiums = await stadiumService.getAllStadiums();
+      setStadiums(updatedStadiums);
+      if (editStadiumIndex === idx) {
+        setEditStadiumIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting stadium:', error);
+    }
   };
 
   const handleFixtureSubmit = (e: React.FormEvent) => {
@@ -224,6 +362,23 @@ const QuanLyThongTin = () => {
     }
     setStandingForm(initialStandingForm);
   };
+
+  // Fetch clubs and stadiums when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [clubsData, stadiumsData] = await Promise.all([
+          clubService.getAllClubs(),
+          stadiumService.getAllStadiums()
+        ]);
+        setClubs(clubsData);
+        setStadiums(stadiumsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <Box sx={{ width: '100%', mt: 4 }}>
@@ -296,13 +451,55 @@ const QuanLyThongTin = () => {
               <CardContent>
                 <Typography variant="h6" gutterBottom>Add New Club</Typography>
                 <Box component="form" onSubmit={handleClubSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <TextField label="Club Name" name="name" value={clubForm.name} onChange={(e) => setClubForm({...clubForm, name: e.target.value})} required />
-                  <TextField label="Founded Year" name="founded" value={clubForm.founded} onChange={(e) => setClubForm({...clubForm, founded: e.target.value})} required />
-                  <TextField label="Stadium" name="stadium" value={clubForm.stadium} onChange={(e) => setClubForm({...clubForm, stadium: e.target.value})} required />
-                  <TextField label="Manager" name="manager" value={clubForm.manager} onChange={(e) => setClubForm({...clubForm, manager: e.target.value})} required />
-                  <TextField label="Location" name="location" value={clubForm.location} onChange={(e) => setClubForm({...clubForm, location: e.target.value})} required />
-                  <TextField label="Website" name="website" value={clubForm.website} onChange={(e) => setClubForm({...clubForm, website: e.target.value})} />
-                  <Button type="submit" variant="contained" color="primary" sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}>
+                  <TextField 
+                    label="Club Name" 
+                    name="name" 
+                    value={clubForm.name} 
+                    onChange={(e) => setClubForm({...clubForm, name: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Founded Year" 
+                    name="founded" 
+                    type="number"
+                    value={clubForm.founded} 
+                    onChange={(e) => setClubForm({...clubForm, founded: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Stadium ID" 
+                    name="stadium" 
+                    type="number"
+                    value={clubForm.stadium} 
+                    onChange={(e) => setClubForm({...clubForm, stadium: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Manager" 
+                    name="manager" 
+                    value={clubForm.manager} 
+                    onChange={(e) => setClubForm({...clubForm, manager: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Location" 
+                    name="location" 
+                    value={clubForm.location} 
+                    onChange={(e) => setClubForm({...clubForm, location: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Website" 
+                    name="website" 
+                    value={clubForm.website} 
+                    onChange={(e) => setClubForm({...clubForm, website: e.target.value})} 
+                  />
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}
+                  >
                     {editClubIndex !== null ? 'Update Club' : 'Add Club'}
                   </Button>
                 </Box>
@@ -314,31 +511,53 @@ const QuanLyThongTin = () => {
               <Table>
                 <TableHead sx={{ bgcolor: '#37003c' }}>
                   <TableRow>
+                    <TableCell sx={{ color: 'white' }}>ID</TableCell>
                     <TableCell sx={{ color: 'white' }}>Club Name</TableCell>
                     <TableCell sx={{ color: 'white' }}>Founded</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Stadium</TableCell>
                     <TableCell sx={{ color: 'white' }}>Manager</TableCell>
                     <TableCell sx={{ color: 'white' }}>Location</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Website</TableCell>
                     <TableCell sx={{ color: 'white' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {clubs.map((club, idx) => (
-                    <TableRow key={idx} hover>
+                    <TableRow key={club.id} hover>
+                      <TableCell>{club.id}</TableCell>
                       <TableCell>{club.name}</TableCell>
-                      <TableCell>{club.founded}</TableCell>
-                      <TableCell>{club.stadium}</TableCell>
+                      <TableCell>{club.foundedYear}</TableCell>
                       <TableCell>{club.manager}</TableCell>
                       <TableCell>{club.location}</TableCell>
+                      <TableCell>{club.website}</TableCell>
                       <TableCell>
-                        <IconButton color="primary" onClick={() => {
-                          setClubForm(club);
-                          setEditClubIndex(idx);
-                        }}><EditIcon /></IconButton>
-                        <IconButton color="error" onClick={() => {
-                          setClubs(clubs.filter((_, i) => i !== idx));
-                          if (editClubIndex === idx) setEditClubIndex(null);
-                        }}><DeleteIcon /></IconButton>
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => {
+                            setClubForm({
+                              name: club.name,
+                              founded: club.foundedYear.toString(),
+                              stadium: club.stadium?.id.toString() || '',
+                              manager: club.manager,
+                              location: club.location,
+                              website: club.website || '',
+                              logo: '',
+                              socialMedia: {
+                                twitter: '',
+                                facebook: '',
+                                instagram: ''
+                              }
+                            });
+                            setEditClubIndex(idx);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleDeleteClub(idx)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -349,47 +568,109 @@ const QuanLyThongTin = () => {
         </Grid>
       </TabPanel>
       <TabPanel value={tab} index={2}>
-        <Typography variant="h6" gutterBottom>Stadium Management</Typography>
-        <Box component="form" onSubmit={handleStadiumSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Stadium Name" name="name" value={stadiumForm.name} onChange={(e) => setStadiumForm({...stadiumForm, name: e.target.value})} required />
-          <TextField label="Capacity" name="capacity" value={stadiumForm.capacity} onChange={(e) => setStadiumForm({...stadiumForm, capacity: e.target.value})} required />
-          <TextField label="Location" name="location" value={stadiumForm.location} onChange={(e) => setStadiumForm({...stadiumForm, location: e.target.value})} required />
-          <TextField label="Year Built" name="yearBuilt" value={stadiumForm.yearBuilt} onChange={(e) => setStadiumForm({...stadiumForm, yearBuilt: e.target.value})} required />
-          <Button type="submit" variant="contained" color="primary">{editStadiumIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Stadium Name</TableCell>
-                <TableCell>Capacity</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Year Built</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {stadiums.map((stadium, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{stadium.name}</TableCell>
-                  <TableCell>{stadium.capacity}</TableCell>
-                  <TableCell>{stadium.location}</TableCell>
-                  <TableCell>{stadium.yearBuilt}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setStadiumForm(stadium);
-                      setEditStadiumIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setStadiums(stadiums.filter((_, i) => i !== idx));
-                      if (editStadiumIndex === idx) setEditStadiumIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Typography variant="h4" gutterBottom sx={{ color: '#37003c', fontWeight: 'bold' }}>Stadium Management</Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Add New Stadium</Typography>
+                <Box component="form" onSubmit={handleStadiumSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField 
+                    label="Stadium Name" 
+                    name="name" 
+                    value={stadiumForm.name} 
+                    onChange={(e) => setStadiumForm({...stadiumForm, name: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Capacity" 
+                    name="capacity" 
+                    type="number"
+                    value={stadiumForm.capacity} 
+                    onChange={(e) => setStadiumForm({...stadiumForm, capacity: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Location" 
+                    name="location" 
+                    value={stadiumForm.location} 
+                    onChange={(e) => setStadiumForm({...stadiumForm, location: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Year Built" 
+                    name="yearBuilt" 
+                    type="number"
+                    value={stadiumForm.yearBuilt} 
+                    onChange={(e) => setStadiumForm({...stadiumForm, yearBuilt: e.target.value})} 
+                  />
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}
+                  >
+                    {editStadiumIndex !== null ? 'Update Stadium' : 'Add Stadium'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+              <Table>
+                <TableHead sx={{ bgcolor: '#37003c' }}>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white' }}>ID</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Name</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Capacity</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Location</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Year Built</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {stadiums.map((stadium, idx) => (
+                    <TableRow key={stadium.id} hover>
+                      <TableCell>{stadium.id}</TableCell>
+                      <TableCell>{stadium.name}</TableCell>
+                      <TableCell>{stadium.capacity}</TableCell>
+                      <TableCell>{stadium.location}</TableCell>
+                      <TableCell>{stadium.yearBuilt}</TableCell>
+                      <TableCell>
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => {
+                            setStadiumForm({
+                              name: stadium.name,
+                              capacity: stadium.capacity.toString(),
+                              location: stadium.location,
+                              yearBuilt: stadium.yearBuilt?.toString() || '',
+                              image: '',
+                              coordinates: {
+                                lat: '',
+                                lng: ''
+                              }
+                            });
+                            setEditStadiumIndex(idx);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleDeleteStadium(idx)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+        </Grid>
       </TabPanel>
       <TabPanel value={tab} index={3}>
         <Typography variant="h6" gutterBottom>Fixture Management</Typography>
