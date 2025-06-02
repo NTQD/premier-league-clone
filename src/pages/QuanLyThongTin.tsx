@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Tabs, Tab, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Card, CardContent, CardMedia } from '@mui/material';
+import { Box, Tabs, Tab, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Card, CardContent, CardMedia, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Partners from '../components/Partners';
 import { playerService, Player } from '../services/playerService';
 import { clubService, Club } from '../services/clubService';
 import { stadiumService, Stadium } from '../services/stadiumService';
-import { fixtureService, Fixture } from '../services/fixtureService';
-import { resultService, Result } from '../services/resultService';
-import { standingService, Standing } from '../services/standingService';
+import { fixtureService } from '../services/fixtureService';
+import { resultService } from '../services/resultService';
+import { standingService } from '../services/standingService';
 
 function TabPanel(props: any) {
   const { children, value, index, ...other } = props;
@@ -73,7 +73,7 @@ const initialFixtureForm = {
   stadium: '',
   competition: 'Premier League',
   matchweek: '',
-  status: 'Scheduled', // Scheduled, Live, Finished
+  status: 'SCHEDULED',
   broadcasters: []
 };
 
@@ -105,12 +105,54 @@ const initialStandingForm = {
   drawn: '',
   lost: '',
   points: '',
-  goalsFor: '',
-  goalsAgainst: '',
-  goalDifference: '',
-  form: [], // Last 5 matches results
-  position: ''
+  form: [] as string[]
 };
+
+interface Fixture {
+  id?: number;
+  homeTeam?: { id: number; name: string };
+  awayTeam?: { id: number; name: string };
+  date: string;
+  time: string;
+  stadium?: { id: number; name: string };
+  competition?: string;
+  matchweek?: number;
+  status?: string;
+  broadcasters?: string[];
+}
+
+interface Result {
+  id?: number;
+  homeTeam?: { id: number; name: string };
+  awayTeam?: { id: number; name: string };
+  homeScore?: number;
+  awayScore?: number;
+  date: string;
+  competition?: string;
+  matchweek?: number;
+  scorers?: {
+    home: string[];
+    away: string[];
+  };
+  stats?: {
+    possession: { home: string; away: string };
+    shots: { home: string; away: string };
+    shotsOnTarget: { home: string; away: string };
+    corners: { home: string; away: string };
+    fouls: { home: string; away: string };
+  };
+}
+
+interface StandingData {
+  id?: number;
+  team?: { id: number; name: string };
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  points: number;
+  form?: string[];
+}
 
 const QuanLyThongTin = () => {
   const [tab, setTab] = useState(0);
@@ -354,17 +396,33 @@ const QuanLyThongTin = () => {
     setResultForm(initialResultForm);
   };
 
-  const handleStandingSubmit = (e: React.FormEvent) => {
+  const handleStandingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editStandingIndex !== null) {
-      const updated = [...standings];
-      updated[editStandingIndex] = standingForm;
-      setStandings(updated);
+    try {
+      const standingData = {
+        team: { id: parseInt(standingForm.team) },
+        played: parseInt(standingForm.played),
+        won: parseInt(standingForm.won),
+        drawn: parseInt(standingForm.drawn),
+        lost: parseInt(standingForm.lost),
+        points: parseInt(standingForm.points),
+        form: standingForm.form
+      };
+
+      if (editStandingIndex !== null) {
+        const standingId = standings[editStandingIndex].id!;
+        await standingService.updateStanding(standingId, standingData);
+      } else {
+        await standingService.createStanding(standingData);
+      }
+
+      const updatedStandings = await standingService.getAllStandings();
+      setStandings(updatedStandings);
+      setStandingForm(initialStandingForm);
       setEditStandingIndex(null);
-    } else {
-      setStandings([...standings, standingForm]);
+    } catch (error) {
+      console.error('Error saving standing:', error);
     }
-    setStandingForm(initialStandingForm);
   };
 
   // Fetch data when component mounts
@@ -434,6 +492,48 @@ const QuanLyThongTin = () => {
       if (editIndex === idx) setEditIndex(null);
     } catch (error) {
       console.error('Error deleting player:', error);
+    }
+  };
+
+  const handleDeleteFixture = async (idx: number) => {
+    try {
+      const fixtureId = fixtures[idx].id!;
+      await fixtureService.deleteFixture(fixtureId);
+      const updatedFixtures = await fixtureService.getAllFixtures();
+      setFixtures(updatedFixtures);
+      if (editFixtureIndex === idx) {
+        setEditFixtureIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting fixture:', error);
+    }
+  };
+
+  const handleDeleteResult = async (idx: number) => {
+    try {
+      const resultId = results[idx].id!;
+      await resultService.deleteResult(resultId);
+      const updatedResults = await resultService.getAllResults();
+      setResults(updatedResults);
+      if (editResultIndex === idx) {
+        setEditResultIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting result:', error);
+    }
+  };
+
+  const handleDeleteStanding = async (idx: number) => {
+    try {
+      const standingId = standings[idx].id!;
+      await standingService.deleteStanding(standingId);
+      const updatedStandings = await standingService.getAllStandings();
+      setStandings(updatedStandings);
+      if (editStandingIndex === idx) {
+        setEditStandingIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting standing:', error);
     }
   };
 
@@ -585,15 +685,15 @@ const QuanLyThongTin = () => {
                       <TableCell>{club.foundedYear}</TableCell>
                       <TableCell>{club.manager}</TableCell>
                       <TableCell>{club.location}</TableCell>
-                      <TableCell>{club.website}</TableCell>
+                      <TableCell>{club.website || '-'}</TableCell>
                       <TableCell>
                         <IconButton 
                           color="primary" 
                           onClick={() => {
                             setClubForm({
                               name: club.name,
-                              founded: club.foundedYear.toString(),
-                              stadium: club.stadium?.id.toString() || '',
+                              founded: club.foundedYear?.toString() || '',
+                              stadium: club.stadium?.id?.toString() || '',
                               manager: club.manager,
                               location: club.location,
                               website: club.website || '',
@@ -731,96 +831,279 @@ const QuanLyThongTin = () => {
         </Grid>
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        <Typography variant="h6" gutterBottom>Fixture Management</Typography>
-        <Box component="form" onSubmit={handleFixtureSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Home Team" name="homeTeam" value={fixtureForm.homeTeam} onChange={(e) => setFixtureForm({...fixtureForm, homeTeam: e.target.value})} required />
-          <TextField label="Away Team" name="awayTeam" value={fixtureForm.awayTeam} onChange={(e) => setFixtureForm({...fixtureForm, awayTeam: e.target.value})} required />
-          <TextField label="Date" name="date" type="date" value={fixtureForm.date} onChange={(e) => setFixtureForm({...fixtureForm, date: e.target.value})} InputLabelProps={{ shrink: true }} required />
-          <TextField label="Time" name="time" type="time" value={fixtureForm.time} onChange={(e) => setFixtureForm({...fixtureForm, time: e.target.value})} InputLabelProps={{ shrink: true }} required />
-          <TextField label="Stadium" name="stadium" value={fixtureForm.stadium} onChange={(e) => setFixtureForm({...fixtureForm, stadium: e.target.value})} required />
-          <Button type="submit" variant="contained" color="primary">{editFixtureIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Home Team</TableCell>
-                <TableCell>Away Team</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell>Stadium</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {fixtures.map((fixture, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{fixture.homeTeam}</TableCell>
-                  <TableCell>{fixture.awayTeam}</TableCell>
-                  <TableCell>{fixture.date}</TableCell>
-                  <TableCell>{fixture.time}</TableCell>
-                  <TableCell>{fixture.stadium}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setFixtureForm(fixture);
-                      setEditFixtureIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setFixtures(fixtures.filter((_, i) => i !== idx));
-                      if (editFixtureIndex === idx) setEditFixtureIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Typography variant="h4" gutterBottom sx={{ color: '#37003c', fontWeight: 'bold' }}>Fixture Management</Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Add New Fixture</Typography>
+                <Box component="form" onSubmit={handleFixtureSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField 
+                    label="Home Team" 
+                    name="homeTeam" 
+                    value={fixtureForm.homeTeam} 
+                    onChange={(e) => setFixtureForm({...fixtureForm, homeTeam: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Away Team" 
+                    name="awayTeam" 
+                    value={fixtureForm.awayTeam} 
+                    onChange={(e) => setFixtureForm({...fixtureForm, awayTeam: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Date" 
+                    name="date" 
+                    type="date" 
+                    value={fixtureForm.date} 
+                    onChange={(e) => setFixtureForm({...fixtureForm, date: e.target.value})} 
+                    InputLabelProps={{ shrink: true }} 
+                    required 
+                  />
+                  <TextField 
+                    label="Time" 
+                    name="time" 
+                    type="time" 
+                    value={fixtureForm.time} 
+                    onChange={(e) => setFixtureForm({...fixtureForm, time: e.target.value})} 
+                    InputLabelProps={{ shrink: true }} 
+                    required 
+                  />
+                  <TextField 
+                    label="Stadium" 
+                    name="stadium" 
+                    value={fixtureForm.stadium} 
+                    onChange={(e) => setFixtureForm({...fixtureForm, stadium: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Matchweek" 
+                    name="matchweek" 
+                    type="number"
+                    value={fixtureForm.matchweek} 
+                    onChange={(e) => setFixtureForm({...fixtureForm, matchweek: e.target.value})} 
+                    required 
+                  />
+                  <FormControl>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={fixtureForm.status}
+                      onChange={(e) => setFixtureForm({...fixtureForm, status: e.target.value})}
+                      label="Status"
+                    >
+                      <MenuItem value="SCHEDULED">Scheduled</MenuItem>
+                      <MenuItem value="LIVE">Live</MenuItem>
+                      <MenuItem value="FINISHED">Finished</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}
+                  >
+                    {editFixtureIndex !== null ? 'Update Fixture' : 'Add Fixture'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+              <Table>
+                <TableHead sx={{ bgcolor: '#37003c' }}>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white' }}>Home Team</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Away Team</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Date</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Time</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Stadium</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Matchweek</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {fixtures.map((fixture: Fixture, idx: number) => (
+                    <TableRow key={idx} hover>
+                      <TableCell>{fixture.homeTeam?.name || '-'}</TableCell>
+                      <TableCell>{fixture.awayTeam?.name || '-'}</TableCell>
+                      <TableCell>{fixture.date}</TableCell>
+                      <TableCell>{fixture.time}</TableCell>
+                      <TableCell>{fixture.stadium?.name || '-'}</TableCell>
+                      <TableCell>{fixture.matchweek}</TableCell>
+                      <TableCell>{fixture.status}</TableCell>
+                      <TableCell>
+                        <IconButton color="primary" onClick={() => {
+                          setFixtureForm({
+                            homeTeam: fixture.homeTeam?.id?.toString() || '',
+                            awayTeam: fixture.awayTeam?.id?.toString() || '',
+                            date: fixture.date,
+                            time: fixture.time,
+                            stadium: fixture.stadium?.id?.toString() || '',
+                            competition: fixture.competition || 'Premier League',
+                            matchweek: fixture.matchweek?.toString() || '',
+                            status: fixture.status || 'SCHEDULED',
+                            broadcasters: fixture.broadcasters || []
+                          });
+                          setEditFixtureIndex(idx);
+                        }}><EditIcon /></IconButton>
+                        <IconButton color="error" onClick={() => handleDeleteFixture(idx)}><DeleteIcon /></IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+        </Grid>
       </TabPanel>
       <TabPanel value={tab} index={4}>
-        <Typography variant="h6" gutterBottom>Result Management</Typography>
-        <Box component="form" onSubmit={handleResultSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Home Team" name="homeTeam" value={resultForm.homeTeam} onChange={(e) => setResultForm({...resultForm, homeTeam: e.target.value})} required />
-          <TextField label="Away Team" name="awayTeam" value={resultForm.awayTeam} onChange={(e) => setResultForm({...resultForm, awayTeam: e.target.value})} required />
-          <TextField label="Home Score" name="homeScore" type="number" value={resultForm.homeScore} onChange={(e) => setResultForm({...resultForm, homeScore: e.target.value})} required />
-          <TextField label="Away Score" name="awayScore" type="number" value={resultForm.awayScore} onChange={(e) => setResultForm({...resultForm, awayScore: e.target.value})} required />
-          <TextField label="Date" name="date" type="date" value={resultForm.date} onChange={(e) => setResultForm({...resultForm, date: e.target.value})} InputLabelProps={{ shrink: true }} required />
-          <Button type="submit" variant="contained" color="primary">{editResultIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Home Team</TableCell>
-                <TableCell>Away Team</TableCell>
-                <TableCell>Home Score</TableCell>
-                <TableCell>Away Score</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {results.map((result, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{result.homeTeam}</TableCell>
-                  <TableCell>{result.awayTeam}</TableCell>
-                  <TableCell>{result.homeScore}</TableCell>
-                  <TableCell>{result.awayScore}</TableCell>
-                  <TableCell>{result.date}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setResultForm(result);
-                      setEditResultIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setResults(results.filter((_, i) => i !== idx));
-                      if (editResultIndex === idx) setEditResultIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Typography variant="h4" gutterBottom sx={{ color: '#37003c', fontWeight: 'bold' }}>Result Management</Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Add New Result</Typography>
+                <Box component="form" onSubmit={handleResultSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField 
+                    label="Home Team" 
+                    name="homeTeam" 
+                    value={resultForm.homeTeam} 
+                    onChange={(e) => setResultForm({...resultForm, homeTeam: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Away Team" 
+                    name="awayTeam" 
+                    value={resultForm.awayTeam} 
+                    onChange={(e) => setResultForm({...resultForm, awayTeam: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Home Score" 
+                    name="homeScore" 
+                    type="number"
+                    value={resultForm.homeScore} 
+                    onChange={(e) => setResultForm({...resultForm, homeScore: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Away Score" 
+                    name="awayScore" 
+                    type="number"
+                    value={resultForm.awayScore} 
+                    onChange={(e) => setResultForm({...resultForm, awayScore: e.target.value})} 
+                    required 
+                  />
+                  <TextField 
+                    label="Date" 
+                    name="date" 
+                    type="date" 
+                    value={resultForm.date} 
+                    onChange={(e) => setResultForm({...resultForm, date: e.target.value})} 
+                    InputLabelProps={{ shrink: true }} 
+                    required 
+                  />
+                  <TextField 
+                    label="Matchweek" 
+                    name="matchweek" 
+                    type="number"
+                    value={resultForm.matchweek} 
+                    onChange={(e) => setResultForm({...resultForm, matchweek: e.target.value})} 
+                    required 
+                  />
+                  <Typography variant="subtitle1" sx={{ mt: 2 }}>Match Statistics</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField 
+                        label="Home Possession" 
+                        name="homePossession" 
+                        type="number"
+                        value={resultForm.stats.possession.home} 
+                        onChange={(e) => setResultForm({
+                          ...resultForm, 
+                          stats: {...resultForm.stats, possession: {...resultForm.stats.possession, home: e.target.value}}
+                        })} 
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField 
+                        label="Away Possession" 
+                        name="awayPossession" 
+                        type="number"
+                        value={resultForm.stats.possession.away} 
+                        onChange={(e) => setResultForm({
+                          ...resultForm, 
+                          stats: {...resultForm.stats, possession: {...resultForm.stats.possession, away: e.target.value}}
+                        })} 
+                      />
+                    </Grid>
+                  </Grid>
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}
+                  >
+                    {editResultIndex !== null ? 'Update Result' : 'Add Result'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+              <Table>
+                <TableHead sx={{ bgcolor: '#37003c' }}>
+                  <TableRow>
+                    <TableCell sx={{ color: 'white' }}>Home Team</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Away Team</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Score</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Date</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Matchweek</TableCell>
+                    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {results.map((result: Result, idx: number) => (
+                    <TableRow key={idx} hover>
+                      <TableCell>{result.homeTeam?.name || '-'}</TableCell>
+                      <TableCell>{result.awayTeam?.name || '-'}</TableCell>
+                      <TableCell>{`${result.homeScore} - ${result.awayScore}`}</TableCell>
+                      <TableCell>{result.date}</TableCell>
+                      <TableCell>{result.matchweek}</TableCell>
+                      <TableCell>
+                        <IconButton color="primary" onClick={() => {
+                          setResultForm({
+                            homeTeam: result.homeTeam?.id?.toString() || '',
+                            awayTeam: result.awayTeam?.id?.toString() || '',
+                            homeScore: result.homeScore?.toString() || '',
+                            awayScore: result.awayScore?.toString() || '',
+                            date: result.date,
+                            competition: result.competition || 'Premier League',
+                            matchweek: result.matchweek?.toString() || '',
+                            scorers: result.scorers || { home: [], away: [] },
+                            stats: result.stats || {
+                              possession: { home: '', away: '' },
+                              shots: { home: '', away: '' },
+                              shotsOnTarget: { home: '', away: '' },
+                              corners: { home: '', away: '' },
+                              fouls: { home: '', away: '' }
+                            }
+                          });
+                          setEditResultIndex(idx);
+                        }}><EditIcon /></IconButton>
+                        <IconButton color="error" onClick={() => handleDeleteResult(idx)}><DeleteIcon /></IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+        </Grid>
       </TabPanel>
       <TabPanel value={tab} index={5}>
         <Typography variant="h6" gutterBottom>Standing Management</Typography>
@@ -847,9 +1130,9 @@ const QuanLyThongTin = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {standings.map((standing, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{standing.team}</TableCell>
+              {standings.map((standing: StandingData, idx: number) => (
+                <TableRow key={idx} hover>
+                  <TableCell>{standing.team?.name || '-'}</TableCell>
                   <TableCell>{standing.played}</TableCell>
                   <TableCell>{standing.won}</TableCell>
                   <TableCell>{standing.drawn}</TableCell>
@@ -857,13 +1140,18 @@ const QuanLyThongTin = () => {
                   <TableCell>{standing.points}</TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => {
-                      setStandingForm(standing);
+                      setStandingForm({
+                        team: standing.team?.id?.toString() || '',
+                        played: standing.played?.toString() || '',
+                        won: standing.won?.toString() || '',
+                        drawn: standing.drawn?.toString() || '',
+                        lost: standing.lost?.toString() || '',
+                        points: standing.points?.toString() || '',
+                        form: standing.form || []
+                      });
                       setEditStandingIndex(idx);
                     }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setStandings(standings.filter((_, i) => i !== idx));
-                      if (editStandingIndex === idx) setEditStandingIndex(null);
-                    }}><DeleteIcon /></IconButton>
+                    <IconButton color="error" onClick={() => handleDeleteStanding(idx)}><DeleteIcon /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
