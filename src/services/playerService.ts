@@ -8,6 +8,7 @@ export interface Player {
   positionPlayer: string;
   club?: {
     id: number;
+    name?: string;
   };
 }
 
@@ -23,7 +24,15 @@ export const playerService = {
   },
 
   createPlayer: async (playerData: Player): Promise<Player> => {
-    return await createData(ENDPOINT, playerData);
+    console.log('Creating player with data:', playerData);
+    try {
+      const result = await createData(ENDPOINT, playerData);
+      console.log('Create player result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in createPlayer:', error);
+      throw error;
+    }
   },
 
   updatePlayer: async (id: number, playerData: Player): Promise<Player> => {

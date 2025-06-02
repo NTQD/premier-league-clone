@@ -3,8 +3,12 @@ import { Box, Tabs, Tab, Typography, TextField, Button, Table, TableBody, TableC
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Partners from '../components/Partners';
+import { playerService, Player } from '../services/playerService';
 import { clubService, Club } from '../services/clubService';
 import { stadiumService, Stadium } from '../services/stadiumService';
+import { fixtureService, Fixture } from '../services/fixtureService';
+import { resultService, Result } from '../services/resultService';
+import { standingService, Standing } from '../services/standingService';
 
 function TabPanel(props: any) {
   const { children, value, index, ...other } = props;
@@ -363,22 +367,75 @@ const QuanLyThongTin = () => {
     setStandingForm(initialStandingForm);
   };
 
-  // Fetch clubs and stadiums when component mounts
+  // Fetch data when component mounts
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAllData = async () => {
       try {
-        const [clubsData, stadiumsData] = await Promise.all([
+        const [playersData, clubsData, stadiumsData, fixturesData, resultsData, standingsData] = await Promise.all([
+          playerService.getAllPlayers(),
           clubService.getAllClubs(),
-          stadiumService.getAllStadiums()
+          stadiumService.getAllStadiums(),
+          fixtureService.getAllFixtures(),
+          resultService.getAllResults(),
+          standingService.getAllStandings()
         ]);
+        
+        setPlayers(playersData);
         setClubs(clubsData);
         setStadiums(stadiumsData);
+        setFixtures(fixturesData);
+        setResults(resultsData);
+        setStandings(standingsData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
-    fetchData();
+
+    fetchAllData();
   }, []);
+
+  const handlePlayerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const playerData: Player = {
+        name: form.name,
+        dateOfBirth: form.dateOfBirth,
+        nationality: form.nationality,
+        positionPlayer: form.positionPlayer,
+        club: form.club ? { id: parseInt(form.club) } : undefined
+      };
+
+      console.log('Sending player data:', playerData);
+
+      if (editIndex !== null) {
+        const updatedPlayer = await playerService.updatePlayer(players[editIndex].id!, playerData);
+        const updatedPlayers = [...players];
+        updatedPlayers[editIndex] = updatedPlayer;
+        setPlayers(updatedPlayers);
+        setEditIndex(null);
+      } else {
+        const newPlayer = await playerService.createPlayer(playerData);
+        setPlayers([...players, newPlayer]);
+      }
+      setForm(initialForm);
+    } catch (error) {
+      console.error('Error saving player:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
+    }
+  };
+
+  const handleDeletePlayer = async (idx: number) => {
+    try {
+      const playerId = players[idx].id!;
+      await playerService.deletePlayer(playerId);
+      setPlayers(players.filter((_, i) => i !== idx));
+      if (editIndex === idx) setEditIndex(null);
+    } catch (error) {
+      console.error('Error deleting player:', error);
+    }
+  };
 
   return (
     <Box sx={{ width: '100%', mt: 4 }}>
@@ -397,7 +454,7 @@ const QuanLyThongTin = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>Add New Player</Typography>
-                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box component="form" onSubmit={handlePlayerSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <TextField label="Name" name="name" value={form.name} onChange={handleInputChange} required />
                   <TextField label="Date of Birth" name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={handleInputChange} InputLabelProps={{ shrink: true }} required />
                   <TextField label="Nationality" name="nationality" value={form.nationality} onChange={handleInputChange} required />
@@ -430,10 +487,10 @@ const QuanLyThongTin = () => {
                       <TableCell>{p.dateOfBirth}</TableCell>
                       <TableCell>{p.nationality}</TableCell>
                       <TableCell>{p.positionPlayer}</TableCell>
-                      <TableCell>{p.club}</TableCell>
+                      <TableCell>{p.club?.name}</TableCell>
                       <TableCell>
                         <IconButton color="primary" onClick={() => handleEdit(idx)}><EditIcon /></IconButton>
-                        <IconButton color="error" onClick={() => handleDelete(idx)}><DeleteIcon /></IconButton>
+                        <IconButton color="error" onClick={() => handleDeletePlayer(idx)}><DeleteIcon /></IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -646,6 +703,7 @@ const QuanLyThongTin = () => {
                               capacity: stadium.capacity.toString(),
                               location: stadium.location,
                               yearBuilt: stadium.yearBuilt?.toString() || '',
+                              surface: '',
                               image: '',
                               coordinates: {
                                 lat: '',

@@ -6,7 +6,9 @@ export const fetchData = async (endpoint: string) => {
     if (response.ok) {
       return await response.json();
     }
-    throw new Error('Failed to fetch data');
+    const errorData = await response.json().catch(() => null);
+    console.error('Server error response:', errorData);
+    throw new Error(errorData?.message || 'Failed to fetch data');
   } catch (error) {
     console.error(`Error fetching data from ${endpoint}:`, error);
     throw error;
@@ -15,6 +17,7 @@ export const fetchData = async (endpoint: string) => {
 
 export const createData = async (endpoint: string, data: any) => {
   try {
+    console.log('Creating data at', endpoint, 'with data:', data);
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -22,10 +25,14 @@ export const createData = async (endpoint: string, data: any) => {
       },
       body: JSON.stringify(data),
     });
+    
     if (response.ok) {
       return await response.json();
     }
-    throw new Error('Failed to create data');
+    
+    const errorData = await response.json().catch(() => null);
+    console.error('Server error response:', errorData);
+    throw new Error(errorData?.message || 'Failed to create data');
   } catch (error) {
     console.error(`Error creating data at ${endpoint}:`, error);
     throw error;
@@ -44,7 +51,9 @@ export const updateData = async (endpoint: string, id: number, data: any) => {
     if (response.ok) {
       return await response.json();
     }
-    throw new Error('Failed to update data');
+    const errorData = await response.json().catch(() => null);
+    console.error('Server error response:', errorData);
+    throw new Error(errorData?.message || 'Failed to update data');
   } catch (error) {
     console.error(`Error updating data at ${endpoint}/${id}:`, error);
     throw error;
@@ -59,7 +68,9 @@ export const deleteData = async (endpoint: string, id: number) => {
     if (response.ok) {
       return true;
     }
-    throw new Error('Failed to delete data');
+    const errorData = await response.json().catch(() => null);
+    console.error('Server error response:', errorData);
+    throw new Error(errorData?.message || 'Failed to delete data');
   } catch (error) {
     console.error(`Error deleting data at ${endpoint}/${id}:`, error);
     throw error;
