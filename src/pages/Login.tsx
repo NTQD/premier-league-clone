@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, Container, Paper, Tab, Tabs, TextField, Typography, Divider, Grid, IconButton } from '@mui/material';
+import { Box, Button, Container, Paper, Tab, Tabs, TextField, Typography, Divider, Grid, IconButton, Snackbar, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -19,20 +19,57 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [openSuccess, setOpenSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       setError('');
-      navigate('/thongtin');
+      setOpenSuccess(true);
+      setTimeout(() => {
+        navigate('/thongtin');
+      }, 1500);
     } else {
       setError('Sai email hoặc mật khẩu!');
     }
   };
 
+  const handleCloseSuccess = () => {
+    setOpenSuccess(false);
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'white', py: 8 }}>
+      <Snackbar 
+        open={openSuccess} 
+        autoHideDuration={1500} 
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ 
+          position: 'fixed',
+          top: '50% !important',
+          left: '50% !important',
+          transform: 'translate(-50%, -50%) !important',
+          width: 'auto',
+          minWidth: '300px'
+        }}
+      >
+        <Alert 
+          onClose={handleCloseSuccess} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            fontSize: '1.1rem',
+            py: 2,
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          Đăng nhập thành công!
+        </Alert>
+      </Snackbar>
       <Container maxWidth="lg">
         <Typography variant="h2" fontWeight={900} color="#fff" sx={{ mb: 4, background: 'linear-gradient(90deg, #37003c 0%, #ff0060 100%)', px: 4, py: 7, borderRadius: 2, minHeight: 120, display: 'flex', alignItems: 'center' }}>
           Your Account

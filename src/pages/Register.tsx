@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Box, Button, Container, Paper, Stepper, Step, StepLabel, Typography, TextField, Grid, Radio, RadioGroup, FormControlLabel, MenuItem, Checkbox, FormGroup, Divider, Select, InputLabel, FormControl, IconButton
+  Box, Button, Container, Paper, Stepper, Step, StepLabel, Typography, TextField, Grid, Radio, RadioGroup, FormControlLabel, MenuItem, Checkbox, FormGroup, Divider, Select, InputLabel, FormControl, IconButton, Snackbar, Alert, Autocomplete
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Visibility from '@mui/icons-material/Visibility';
@@ -108,6 +108,7 @@ const Register = ({ onComplete }: RegisterProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showOtherClubs, setShowOtherClubs] = useState(false);
   const [otherClubs, setOtherClubs] = useState<string[]>([]);
+  const [openSuccess, setOpenSuccess] = useState(false);
   const navigate = useNavigate();
 
   // Validate password
@@ -183,7 +184,10 @@ const Register = ({ onComplete }: RegisterProps) => {
         return;
       }
       setError('');
-      onComplete?.();
+      setOpenSuccess(true);
+      setTimeout(() => {
+        onComplete?.();
+      }, 1500);
       return;
     }
     // Xử lý đăng ký ở đây
@@ -191,8 +195,41 @@ const Register = ({ onComplete }: RegisterProps) => {
     onComplete?.();
   };
 
+  const handleCloseSuccess = () => {
+    setOpenSuccess(false);
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'white', py: 8 }}>
+      <Snackbar 
+        open={openSuccess} 
+        autoHideDuration={1500} 
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ 
+          position: 'fixed',
+          top: '50% !important',
+          left: '50% !important',
+          transform: 'translate(-50%, -50%) !important',
+          width: 'auto',
+          minWidth: '300px'
+        }}
+      >
+        <Alert 
+          onClose={handleCloseSuccess} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            fontSize: '1.1rem',
+            py: 2,
+            '& .MuiAlert-icon': {
+              fontSize: '2rem'
+            }
+          }}
+        >
+          Đăng ký thành công!
+        </Alert>
+      </Snackbar>
       <Container maxWidth="md">
         {/* <Typography variant="h2" fontWeight={900} color="#fff" sx={{ mb: 4, background: 'linear-gradient(90deg, #37003c 0%, #ff0060 100%)', px: 4, py: 7, borderRadius: 2, minHeight: 120, display: 'flex', alignItems: 'center' }}>
           Your Account
@@ -267,12 +304,31 @@ const Register = ({ onComplete }: RegisterProps) => {
                   </Grid>
                   <Grid item xs={12}>
                     <FormControl fullWidth>
-                      <InputLabel>Country/Region of Residence</InputLabel>
-                      <Select value={country} label="Country/Region of Residence" onChange={e => setCountry(e.target.value)}>
-                        {countryList.map(c => (
-                          <MenuItem key={c} value={c}>{c}</MenuItem>
-                        ))}
-                      </Select>
+                      <Autocomplete
+                        value={country}
+                        onChange={(event, newValue) => {
+                          setCountry(newValue || '');
+                        }}
+                        options={countryList}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Country/Region of Residence"
+                            required
+                          />
+                        )}
+                        filterOptions={(options, state) => {
+                          const inputValue = state.inputValue.toLowerCase();
+                          return options.filter(option =>
+                            option.toLowerCase().includes(inputValue)
+                          );
+                        }}
+                        isOptionEqualToValue={(option, value) => option === value}
+                        noOptionsText="Không tìm thấy quốc gia"
+                        clearText="Xóa"
+                        openText="Mở"
+                        closeText="Đóng"
+                      />
                     </FormControl>
                   </Grid>
                   <Grid item xs={12}>
