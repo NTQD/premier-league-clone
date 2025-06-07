@@ -2,9 +2,7 @@ package com.julytus.be.service;
 
 import com.julytus.be.entity.Standing;
 import com.julytus.be.entity.Club;
-import com.julytus.be.entity.Result;
 import com.julytus.be.repository.StandingRepository;
-import com.julytus.be.repository.ResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,24 +12,14 @@ import java.util.List;
 public class StandingService {
     @Autowired
     private StandingRepository standingRepository;
-    
-    @Autowired
-    private ResultRepository resultRepository;
 
-    public List<Standing> getAllStandings() {
-        return standingRepository.findAllOrderByPointsDesc();
+    public List<Standing> getStandingsByPoints() {
+        return standingRepository.findAllByOrderByPointsDesc();
     }
 
-    public Standing getStandingByTeam(Club team) {
-        return standingRepository.findStandingByTeam(team);
-    }
-
-    @Transactional
-    public void updateStandings(Result result) {
-        // Cập nhật cho đội chủ nhà
-        updateTeamStanding(result.getHomeTeam(), result.getHomeScore(), result.getAwayScore());
-        // Cập nhật cho đội khách
-        updateTeamStanding(result.getAwayTeam(), result.getAwayScore(), result.getHomeScore());
+    public Standing getStandingByTeam(Long teamId) {
+        return standingRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Standing not found for team"));
     }
 
     private void updateTeamStanding(Club team, int teamScore, int opponentScore) {
@@ -58,17 +46,5 @@ public class StandingService {
 
         standing.calculatePoints();
         standingRepository.save(standing);
-    }
-
-    @Transactional
-    public void recalculateAllStandings() {
-        List<Result> allResults = resultRepository.findAll();
-        // Reset tất cả standings
-        standingRepository.deleteAll();
-        
-        // Tính toán lại từ kết quả
-        for (Result result : allResults) {
-            updateStandings(result);
-        }
     }
 } 

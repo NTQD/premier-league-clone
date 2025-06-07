@@ -4,11 +4,15 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Club {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +24,6 @@ public class Club {
     @Column(name = "founded_year")
     private Integer foundedYear;
 
-    @ManyToOne
-    @JoinColumn(name = "stadium_id")
-    private Stadium stadium;
-
     @Column(nullable = false)
     private String manager;
 
@@ -31,4 +31,8 @@ public class Club {
     private String location;
 
     private String website;
+
+    private String logo;
+
+    private Integer capacity;
 } 

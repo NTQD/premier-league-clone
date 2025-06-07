@@ -56,6 +56,8 @@ public class PlayerService {
         player.setDateOfBirth(playerDetails.getDateOfBirth());
         player.setNationality(playerDetails.getNationality());
         player.setPosition(playerDetails.getPosition());
+        player.setAvatar(playerDetails.getAvatar());
+        player.setFlag(playerDetails.getFlag());
         
         // Cập nhật club nếu có thay đổi
         if (playerDetails.getClub() != null && playerDetails.getClub().getId() != null) {

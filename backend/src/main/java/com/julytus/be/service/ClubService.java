@@ -1,9 +1,7 @@
 package com.julytus.be.service;
 
 import com.julytus.be.entity.Club;
-import com.julytus.be.entity.Stadium;
 import com.julytus.be.repository.ClubRepository;
-import com.julytus.be.repository.StadiumRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -14,8 +12,6 @@ public class ClubService {
     @Autowired
     private ClubRepository clubRepository;
 
-    @Autowired
-    private StadiumRepository stadiumRepository;
 
     public List<Club> getAllClubs() {
         return clubRepository.findAll();
@@ -30,12 +26,7 @@ public class ClubService {
     }
 
     public Club createClub(Club club) {
-        // Kiểm tra và lấy stadium nếu có stadiumId
-        if (club.getStadium() != null && club.getStadium().getId() != null) {
-            Stadium stadium = stadiumRepository.findById(club.getStadium().getId())
-                    .orElseThrow(() -> new RuntimeException("Stadium not found"));
-            club.setStadium(stadium);
-        }
+        // Không còn xử lý stadium
         return clubRepository.save(club);
     }
 
@@ -48,13 +39,8 @@ public class ClubService {
         club.setManager(clubDetails.getManager());
         club.setLocation(clubDetails.getLocation());
         club.setWebsite(clubDetails.getWebsite());
-
-        // Cập nhật stadium nếu có thay đổi
-        if (clubDetails.getStadium() != null && clubDetails.getStadium().getId() != null) {
-            Stadium stadium = stadiumRepository.findById(clubDetails.getStadium().getId())
-                    .orElseThrow(() -> new RuntimeException("Stadium not found"));
-            club.setStadium(stadium);
-        }
+        club.setLogo(clubDetails.getLogo());
+        club.setCapacity(clubDetails.getCapacity());
 
         return clubRepository.save(club);
     }

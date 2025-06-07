@@ -43,15 +43,7 @@ public class FixtureController {
         LocalDate localDate = LocalDate.parse(date);
         return ResponseEntity.ok(fixtureService.getFixturesByDate(localDate));
     }
-
-    @GetMapping("/stadium/{stadiumId}")
-    public ResponseEntity<List<Fixture>> getFixturesByStadium(@PathVariable Long stadiumId) {
-        try {
-            return ResponseEntity.ok(fixtureService.getFixturesByStadium(stadiumId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
+    
 
     @PostMapping
     public ResponseEntity<Fixture> createFixture(@RequestBody Fixture fixture) {
