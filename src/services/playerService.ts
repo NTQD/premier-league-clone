@@ -10,6 +10,8 @@ export interface Player {
     id: number;
     name?: string;
   };
+  player_image_url?: string;
+  flag_image_url?: string;
 }
 
 const ENDPOINT = '/players';
