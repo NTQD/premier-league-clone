@@ -99,7 +99,6 @@ const PlayerTable = ({ players }: { players: Player[] }) => (
                 <Avatar src={player.avatar} alt={player.name} sx={{ mr: 2 }} />
                 <Typography
                   component={Link}
-                  to={`/players/${player.id}`}
                   sx={{
                     fontWeight: 500,
                     color: 'purple',

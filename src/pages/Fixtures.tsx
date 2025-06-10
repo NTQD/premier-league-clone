@@ -386,7 +386,6 @@ const Fixtures = () => {
                       borderColor: '#e1d5f7',
                       '&:hover': { borderColor: '#7b5cff', bgcolor: '#f3f0fa' },
                     }}
-                    onClick={() => handleOpen(match)}
                   >
                         Quick View
                       </Button>
