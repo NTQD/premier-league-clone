@@ -1,86 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Container, Typography, TextField, Select, MenuItem, FormControl, List, ListItem, ListItemText, Grid, Divider, IconButton } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SearchIcon from '@mui/icons-material/Search';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, Paper } from '@mui/material';
 import { Link } from 'react-router-dom';
 import Partners from '../components/Partners';
-const seasons = ['2024/25', '2023/24', '2022/23'];
-const clubs = ['All Clubs', 'Hà Nội', 'HAGL', 'Bình Dương', 'Viettel'];
+import { playerService, Player as ServicePlayer } from '../services/playerService';
+import { clubService } from '../services/clubService';
 
-// Dữ liệu mẫu cho người chơi
-const playersData = [
-  {
-    id: 1,
-    name: 'Max Aarons',
-    position: 'Defender',
-    nationality: 'England',
-    flag: 'https://flagcdn.com/gb.svg',
-    avatar: 'https://resources.premierleague.com/premierleague/photos/players/110x140/p223340.png',
-    season: '2024/25',
-    club: 'Hà Nội',
-  },
-  {
-    id: 2,
-    name: 'Zach Abbott',
-    position: 'Defender',
-    nationality: 'England',
-    flag: 'https://flagcdn.com/gb.svg',
-    avatar: 'https://resources.premierleague.com/premierleague/photos/players/110x140/p504956.png',
-    season: '2024/25',
-    club: 'Hà Nội',
-  },
-  {
-    id: 3,
-    name: 'Josh Acheampong',
-    position: 'Defender',
-    nationality: 'England',
-    flag: 'https://flagcdn.com/gb.svg',
-    avatar: 'https://resources.premierleague.com/premierleague/photos/players/110x140/p513169.png',
-    season: '2023/24',
-    club: 'HAGL',
-  },
-  {
-    id: 4,
-    name: 'Adam Armstrong',
-    position: 'Forward',
-    nationality: 'England',
-    flag: 'https://flagcdn.com/gb.svg',
-    avatar: 'https://resources.premierleague.com/premierleague/photos/players/110x140/p172780.png',
-    season: '2022/23',
-    club: 'Bình Dương',
-  },
-  {
-    id: 5,
-    name: 'Tyler Adams',
-    position: 'Midfielder',
-    nationality: 'United States',
-    flag: 'https://flagcdn.com/us.svg',
-    avatar: 'https://resources.premierleague.com/premierleague/photos/players/110x140/p209243.png',
-    season: '2023/24',
-    club: 'Viettel',
-  },
-  {
-    id: 6,
-    name: 'Tosin Adarabioyo',
-    position: 'Defender',
-    nationality: 'England',
-    flag: 'https://flagcdn.com/gb.svg',
-    avatar: 'https://resources.premierleague.com/premierleague/photos/players/110x140/p172780.png',
-    season: '2024/25',
-    club: 'Hà Nội',
-  },
-];
-type Player = {
-  id: number;
-  name: string;
-  position: string;
-  nationality: string;
-  flag: string;
-  avatar: string;
+const seasons = ['2024/25', '2023/24', '2022/23'];
+
+interface DisplayPlayer extends Omit<ServicePlayer, 'club'> {
   season: string;
-  club: string;
-};
+  clubName: string;
+}
+
 const PlayerTable = ({ players }: { players: Player[] }) => (
   <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
     <Table>
@@ -97,17 +31,16 @@ const PlayerTable = ({ players }: { players: Player[] }) => (
             <TableCell>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Avatar src={player.avatar} alt={player.name} sx={{ mr: 2 }} />
-                <Typography
-                  component={Link}
-                  sx={{
+                <Link 
+                  to={`/players/`}
+                  style={{
                     fontWeight: 500,
                     color: 'purple',
                     textDecoration: 'none',
-                    '&:hover': { textDecoration: 'underline', color: '#37003c' }
                   }}
                 >
                   {player.name}
-                </Typography>
+                </Link>
               </Box>
             </TableCell>
             <TableCell sx={{ color: 'purple' }}>{player.position}</TableCell>
@@ -123,24 +56,50 @@ const PlayerTable = ({ players }: { players: Player[] }) => (
     </Table>
   </TableContainer>
 );
+
 const Players = () => {
   const [search, setSearch] = useState('');
   const [season, setSeason] = useState(seasons[0]);
-  const [club, setClub] = useState(clubs[0]);
+  const [club, setClub] = useState('All Clubs');
+  const [players, setPlayers] = useState<DisplayPlayer[]>([]);
+  const [clubs, setClubs] = useState<string[]>(['All Clubs']);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Lấy danh sách CLB
+        const clubsData = await clubService.getAllClubs();
+        const clubNames = ['All Clubs', ...clubsData.map(club => club.name)];
+        setClubs(clubNames);
+
+        // Lấy danh sách cầu thủ
+        const playersData = await playerService.getAllPlayers();
+        const playersWithExtraInfo: DisplayPlayer[] = playersData.map(player => ({
+          ...player,
+          season: '2024/25', // Mặc định là mùa giải hiện tại
+          clubName: player.club?.name || 'Unknown' // Lấy tên CLB từ dữ liệu API
+        }));
+        setPlayers(playersWithExtraInfo);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleReset = () => {
     setSeason(seasons[0]);
-    setClub(clubs[0]);
+    setClub('All Clubs');
   };
+
   // Lọc danh sách người chơi theo bộ lọc và tìm kiếm
-  const filteredPlayers = playersData.filter(player => {
+  const filteredPlayers = players.filter(player => {
     return (
       (season === '' || player.season === season) &&
-      (club === '' || player.club === club || club === 'All Clubs') &&
+      (club === '' || player.clubName === club || club === 'All Clubs') &&
       player.name.toLowerCase().includes(search.toLowerCase())
     );
   });
-
 
   return (
     <Container maxWidth={false} sx={{ maxWidth: 1440, py: 6 }}>
