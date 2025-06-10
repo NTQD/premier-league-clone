@@ -100,8 +100,6 @@ const FixtureManagement = ({ fixtures, fixtureForm, editFixtureIndex, handleFixt
                 <TableCell sx={{ color: 'white' }}>Away Score</TableCell>
                 <TableCell sx={{ color: 'white' }}>Away Team</TableCell>
                 <TableCell sx={{ color: 'white' }}>Stadium</TableCell>
-                <TableCell sx={{ color: 'white' }}>Competition</TableCell>
-                <TableCell sx={{ color: 'white' }}>Matchweek</TableCell>
                 <TableCell sx={{ color: 'white' }}>Status</TableCell>
                 <TableCell sx={{ color: 'white' }}>Actions</TableCell>
               </TableRow>
@@ -117,8 +115,6 @@ const FixtureManagement = ({ fixtures, fixtureForm, editFixtureIndex, handleFixt
                   <TableCell>{fixture.awayScore !== null ? fixture.awayScore : '-'}</TableCell>
                   <TableCell>{fixture.awayTeam?.name || '-'}</TableCell>
                   <TableCell>{fixture.stadiumName || '-'}</TableCell>
-                  <TableCell>{fixture.competition}</TableCell>
-                  <TableCell>{fixture.matchweek}</TableCell>
                   <TableCell>{fixture.status}</TableCell>
                   <TableCell>
                     <IconButton color="primary" onClick={() => handleFixtureEdit(idx)}>
