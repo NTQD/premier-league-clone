@@ -1,24 +1,22 @@
-import React, { useState } from 'react';
-import { Box, Tabs, Tab, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Grid, Card, CardContent, CardMedia } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import React, { useState, useEffect } from 'react';
+import { Box, Tabs, Tab } from '@mui/material';
 import Partners from '../components/Partners';
+import PlayerManagement from '../components/PlayerManagement';
+import ClubManagement from '../components/ClubManagement';
+import FixtureManagement from '../components/FixtureManagement';
+import StandingManagement from '../components/StandingManagement';
+import { playerService, Player as ServicePlayer } from '../services/playerService';
+import { clubService, Club as ServiceClub } from '../services/clubService';
+import { stadiumService } from '../services/stadiumService';
+import { fixtureService, Fixture } from '../services/fixtureService';
+import { resultService, Result, Scorer, MatchStats } from '../services/resultService';
+import { standingService, Standing } from '../services/standingService';
 
 function TabPanel(props: any) {
   const { children, value, index, ...other } = props;
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 2 }}>
-          {children}
-        </Box>
-      )}
+    <div role="tabpanel" hidden={value !== index} id={`tabpanel-${index}`} aria-labelledby={`tab-${index}`} {...other}>
+      {value === index && <Box sx={{ p: 2 }}>{children}</Box>}
     </div>
   );
 }
@@ -27,510 +25,412 @@ const initialForm = {
   name: '',
   dateOfBirth: '',
   nationality: '',
-  positionPlayer: '',
-  club: '',
+  position: '',
+  clubId: '',
+  avatar: '',
+  flag: '',
 };
 
 const initialClubForm = {
   name: '',
-  founded: '',
-  stadium: '',
+  foundedYear: '',
+  location: '',
   manager: '',
-  location: '',
-  logo: '',
   website: '',
-  socialMedia: {
-    twitter: '',
-    facebook: '',
-    instagram: ''
-  }
-};
-
-const initialStadiumForm = {
-  name: '',
+  logo: '',
   capacity: '',
-  location: '',
-  yearBuilt: '',
-  surface: '',
-  image: '',
-  coordinates: {
-    lat: '',
-    lng: ''
-  }
 };
 
 const initialFixtureForm = {
-  homeTeam: '',
-  awayTeam: '',
   date: '',
   time: '',
-  stadium: '',
-  competition: 'Premier League',
-  matchweek: '',
-  status: 'Scheduled', // Scheduled, Live, Finished
-  broadcasters: []
-};
-
-const initialResultForm = {
-  homeTeam: '',
-  awayTeam: '',
+  homeTeamId: '',
+  awayTeamId: '',
+  stadiumName: '',
   homeScore: '',
   awayScore: '',
-  date: '',
   competition: 'Premier League',
   matchweek: '',
-  scorers: {
-    home: [],
-    away: []
-  },
-  stats: {
-    possession: { home: '', away: '' },
-    shots: { home: '', away: '' },
-    shotsOnTarget: { home: '', away: '' },
-    corners: { home: '', away: '' },
-    fouls: { home: '', away: '' }
-  }
+  status: 'Scheduled'
 };
 
 const initialStandingForm = {
-  team: '',
+  team_id: '',
+  team_name: '',
   played: '',
   won: '',
   drawn: '',
   lost: '',
+  GF: '',
+  GA: '',
+  GD: '',
   points: '',
-  goalsFor: '',
-  goalsAgainst: '',
-  goalDifference: '',
-  form: [], // Last 5 matches results
-  position: ''
+  position: '',
 };
 
 const QuanLyThongTin = () => {
   const [tab, setTab] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [clubForm, setClubForm] = useState(initialClubForm);
-  const [stadiumForm, setStadiumForm] = useState(initialStadiumForm);
   const [fixtureForm, setFixtureForm] = useState(initialFixtureForm);
-  const [resultForm, setResultForm] = useState(initialResultForm);
   const [standingForm, setStandingForm] = useState(initialStandingForm);
-  
+
   const [players, setPlayers] = useState<any[]>([]);
   const [clubs, setClubs] = useState<any[]>([]);
-  const [stadiums, setStadiums] = useState<any[]>([]);
   const [fixtures, setFixtures] = useState<any[]>([]);
-  const [results, setResults] = useState<any[]>([]);
   const [standings, setStandings] = useState<any[]>([]);
-  
+
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editClubIndex, setEditClubIndex] = useState<number | null>(null);
-  const [editStadiumIndex, setEditStadiumIndex] = useState<number | null>(null);
   const [editFixtureIndex, setEditFixtureIndex] = useState<number | null>(null);
-  const [editResultIndex, setEditResultIndex] = useState<number | null>(null);
   const [editStandingIndex, setEditStandingIndex] = useState<number | null>(null);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTab(newValue);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Player handlers
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const name = e.target.name as string;
+    const value = (e.target as any).value;
+    setForm({ ...form, [name]: value });
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editIndex !== null) {
-      const updated = [...players];
-      updated[editIndex] = form;
-      setPlayers(updated);
+    const playerData: ServicePlayer = {
+      name: form.name,
+      dateOfBirth: form.dateOfBirth,
+      nationality: form.nationality,
+      position: form.position,
+      club: form.clubId ? { id: parseInt(form.clubId) } : undefined,
+      avatar: form.avatar,
+      flag: form.flag,
+    };
+    try {
+      if (editIndex !== null) {
+        const playerId = players[editIndex].id!;
+        await playerService.updatePlayer(playerId, playerData);
+      } else {
+        await playerService.createPlayer(playerData);
+      }
+      const updatedPlayers = await playerService.getAllPlayers();
+      setPlayers(updatedPlayers);
       setEditIndex(null);
-    } else {
-      setPlayers([...players, form]);
+      setForm(initialForm);
+    } catch (error) {
+      console.error('Error saving player:', error);
     }
-    setForm(initialForm);
   };
-
   const handleEdit = (idx: number) => {
-    setForm(players[idx]);
+    const playerToEdit = players[idx];
+    setForm({
+      name: playerToEdit.name,
+      dateOfBirth: playerToEdit.dateOfBirth || '',
+      nationality: playerToEdit.nationality || '',
+      position: playerToEdit.position || '',
+      clubId: playerToEdit.club?.id?.toString() || '',
+      avatar: playerToEdit.avatar || '',
+      flag: playerToEdit.flag || '',
+    });
     setEditIndex(idx);
   };
-
   const handleDelete = (idx: number) => {
-    setPlayers(players.filter((_, i) => i !== idx));
+    const playerId = players[idx].id!;
+    handleDeletePlayer(playerId);
     if (editIndex === idx) setEditIndex(null);
   };
+  const handleDeletePlayer = async (playerId: number) => {
+    try {
+      await playerService.deletePlayer(playerId);
+      const updatedPlayers = await playerService.getAllPlayers();
+      setPlayers(updatedPlayers);
+    } catch (error) {
+      console.error('Error deleting player:', error);
+    }
+  };
 
-  const handleClubSubmit = (e: React.FormEvent) => {
+  // Club handlers
+  const handleClubInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setClubForm({ ...clubForm, [name]: value });
+  };
+  const handleClubSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editClubIndex !== null) {
-      const updated = [...clubs];
-      updated[editClubIndex] = clubForm;
-      setClubs(updated);
+    const clubData: ServiceClub = {
+      name: clubForm.name,
+      foundedYear: clubForm.foundedYear ? parseInt(clubForm.foundedYear) : undefined,
+      manager: clubForm.manager,
+      location: clubForm.location,
+      website: clubForm.website || undefined,
+      logo: clubForm.logo || undefined,
+      capacity: clubForm.capacity ? parseInt(clubForm.capacity) : undefined,
+    };
+    try {
+      if (editClubIndex !== null) {
+        const clubId = clubs[editClubIndex].id!;
+        await clubService.updateClub(clubId, clubData);
+      } else {
+        await clubService.createClub(clubData);
+      }
+      const updatedClubs = await clubService.getAllClubs();
+      setClubs(updatedClubs);
       setEditClubIndex(null);
-    } else {
-      setClubs([...clubs, clubForm]);
+      setClubForm(initialClubForm);
+    } catch (error) {
+      console.error('Error saving club:', error);
     }
-    setClubForm(initialClubForm);
+  };
+  const handleEditClub = (idx: number) => {
+    const clubToEdit = clubs[idx];
+    setClubForm({
+      name: clubToEdit.name || '',
+      foundedYear: clubToEdit.foundedYear?.toString() || '',
+      manager: clubToEdit.manager || '',
+      location: clubToEdit.location || '',
+      website: clubToEdit.website || '',
+      logo: clubToEdit.logo || '',
+      capacity: clubToEdit.capacity?.toString() || '',
+    });
+    setEditClubIndex(idx);
+  };
+  const handleDeleteClub = async (idx: number) => {
+    try {
+      const clubId = clubs[idx].id!;
+      await clubService.deleteClub(clubId);
+      const updatedClubs = await clubService.getAllClubs();
+      setClubs(updatedClubs);
+      if (editClubIndex === idx) {
+        setEditClubIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting club:', error);
+    }
   };
 
-  const handleStadiumSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editStadiumIndex !== null) {
-      const updated = [...stadiums];
-      updated[editStadiumIndex] = stadiumForm;
-      setStadiums(updated);
-      setEditStadiumIndex(null);
-    } else {
-      setStadiums([...stadiums, stadiumForm]);
-    }
-    setStadiumForm(initialStadiumForm);
+  // Fixture handlers
+  const handleFixtureInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFixtureForm({ ...fixtureForm, [name]: value });
   };
-
-  const handleFixtureSubmit = (e: React.FormEvent) => {
+  const handleFixtureSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editFixtureIndex !== null) {
-      const updated = [...fixtures];
-      updated[editFixtureIndex] = fixtureForm;
-      setFixtures(updated);
+    
+    if (!fixtureForm.homeTeamId || !fixtureForm.awayTeamId) {
+      alert("Bạn phải chọn cả Home Team và Away Team!");
+      return;
+    }
+
+    // Tạo object dữ liệu khớp với entity Fixture của backend
+    const fixtureData = {
+      homeTeam: { 
+        id: parseInt(fixtureForm.homeTeamId)
+      },
+      awayTeam: { 
+        id: parseInt(fixtureForm.awayTeamId)
+      },
+      date: fixtureForm.date,
+      time: fixtureForm.time,
+      stadiumName: fixtureForm.stadiumName || null,
+      homeScore: fixtureForm.homeScore ? parseInt(fixtureForm.homeScore) : null,
+      awayScore: fixtureForm.awayScore ? parseInt(fixtureForm.awayScore) : null,
+      competition: fixtureForm.competition,
+      matchweek: parseInt(fixtureForm.matchweek),
+      status: fixtureForm.status
+    };
+
+    console.log('Data being sent to server:', fixtureData);
+
+    try {
+      if (editFixtureIndex !== null) {
+        const fixtureId = fixtures[editFixtureIndex].id!;
+        await fixtureService.updateFixture(fixtureId, fixtureData);
+      } else {
+        await fixtureService.createFixture(fixtureData);
+      }
+      const updatedFixtures = await fixtureService.getAllFixtures();
+      setFixtures(updatedFixtures);
       setEditFixtureIndex(null);
-    } else {
-      setFixtures([...fixtures, fixtureForm]);
+      setFixtureForm(initialFixtureForm);
+    } catch (error) {
+      console.error('Error saving fixture:', error);
     }
-    setFixtureForm(initialFixtureForm);
+  };
+  const handleFixtureEdit = (idx: number) => {
+    const fixtureToEdit = fixtures[idx];
+    const validStatuses: ('Scheduled' | 'Live' | 'Finished')[] = ['Scheduled', 'Live', 'Finished'];
+    const status: 'Scheduled' | 'Live' | 'Finished' = validStatuses.includes(fixtureToEdit.status) ? fixtureToEdit.status : 'Scheduled';
+    
+    setFixtureForm({
+      date: fixtureToEdit.date,
+      time: fixtureToEdit.time,
+      homeTeamId: fixtureToEdit.homeTeam.id.toString(),
+      awayTeamId: fixtureToEdit.awayTeam.id.toString(),
+      stadiumName: fixtureToEdit.stadiumName || '',
+      homeScore: fixtureToEdit.homeScore?.toString() || '',
+      awayScore: fixtureToEdit.awayScore?.toString() || '',
+      competition: fixtureToEdit.competition,
+      matchweek: fixtureToEdit.matchweek?.toString() || '',
+      status: status
+    });
+    setEditFixtureIndex(idx);
+  };
+  const handleDeleteFixture = async (idx: number) => {
+    try {
+      const fixtureId = fixtures[idx].id!;
+      await fixtureService.deleteFixture(fixtureId);
+      const updatedFixtures = await fixtureService.getAllFixtures();
+      setFixtures(updatedFixtures);
+      if (editFixtureIndex === idx) {
+        setEditFixtureIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting fixture:', error);
+    }
   };
 
-  const handleResultSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editResultIndex !== null) {
-      const updated = [...results];
-      updated[editResultIndex] = resultForm;
-      setResults(updated);
-      setEditResultIndex(null);
-    } else {
-      setResults([...results, resultForm]);
-    }
-    setResultForm(initialResultForm);
+  // Standing handlers
+  const handleStandingInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setStandingForm({ ...standingForm, [name]: value });
   };
-
-  const handleStandingSubmit = (e: React.FormEvent) => {
+  const handleStandingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editStandingIndex !== null) {
-      const updated = [...standings];
-      updated[editStandingIndex] = standingForm;
-      setStandings(updated);
+    const standingData: Standing = {
+      team: { id: parseInt(standingForm.team_id), name: standingForm.team_name },
+      played: parseInt(standingForm.played),
+      won: parseInt(standingForm.won),
+      drawn: parseInt(standingForm.drawn),
+      lost: parseInt(standingForm.lost),
+      points: parseInt(standingForm.points),
+    };
+    try {
+      if (editStandingIndex !== null) {
+        const standingId = standings[editStandingIndex].id!;
+        await standingService.updateStanding(standingId, standingData);
+      } else {
+        await standingService.createStanding(standingData);
+      }
+      const updatedStandings = await standingService.getAllStandings();
+      setStandings(updatedStandings);
       setEditStandingIndex(null);
-    } else {
-      setStandings([...standings, standingForm]);
+      setStandingForm(initialStandingForm);
+    } catch (error) {
+      console.error('Error saving standing:', error);
     }
-    setStandingForm(initialStandingForm);
   };
+  const handleStandingEdit = (idx: number) => {
+    const standingToEdit = standings[idx];
+    setStandingForm({
+      team_id: standingToEdit.team.id.toString(),
+      team_name: standingToEdit.team.name,
+      played: standingToEdit.played?.toString() || '',
+      won: standingToEdit.won?.toString() || '',
+      drawn: standingToEdit.drawn?.toString() || '',
+      lost: standingToEdit.lost?.toString() || '',
+      points: standingToEdit.points?.toString() || '',
+      GF: '',
+      GA: '',
+      GD: '',
+      position: '',
+    });
+    setEditStandingIndex(idx);
+  };
+  const handleDeleteStanding = async (idx: number) => {
+    try {
+      const standingId = standings[idx].id!;
+      await standingService.deleteStanding(standingId);
+      const updatedStandings = await standingService.getAllStandings();
+      setStandings(updatedStandings);
+      if (editStandingIndex === idx) {
+        setEditStandingIndex(null);
+      }
+    } catch (error) {
+      console.error('Error deleting standing:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const [playersData, clubsData, fixturesData, standingsData] = await Promise.all([
+          playerService.getAllPlayers(),
+          clubService.getAllClubs(),
+          fixtureService.getAllFixtures(),
+          standingService.getAllStandings()
+        ]);
+        setPlayers(playersData);
+        setClubs(clubsData);
+        setFixtures(fixturesData);
+        setStandings(standingsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchAllData();
+  }, []);
 
   return (
     <Box sx={{ width: '100%', mt: 4 }}>
       <Tabs value={tab} onChange={handleChange} centered sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tab label="Players" />
         <Tab label="Clubs" />
-        <Tab label="Stadiums" />
-        <Tab label="Fixtures" />
-        <Tab label="Results" />
+        <Tab label="Fixtures & Results" />
         <Tab label="Standings" />
       </Tabs>
       <TabPanel value={tab} index={0}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#37003c', fontWeight: 'bold' }}>Player Management</Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Add New Player</Typography>
-                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <TextField label="Name" name="name" value={form.name} onChange={handleInputChange} required />
-                  <TextField label="Date of Birth" name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={handleInputChange} InputLabelProps={{ shrink: true }} required />
-                  <TextField label="Nationality" name="nationality" value={form.nationality} onChange={handleInputChange} required />
-                  <TextField label="Position" name="positionPlayer" value={form.positionPlayer} onChange={handleInputChange} required />
-                  <TextField label="Club" name="club" value={form.club} onChange={handleInputChange} required />
-                  <Button type="submit" variant="contained" color="primary" sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}>
-                    {editIndex !== null ? 'Update Player' : 'Add Player'}
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
-              <Table>
-                <TableHead sx={{ bgcolor: '#37003c' }}>
-                  <TableRow>
-                    <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Date of Birth</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Nationality</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Position</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Club</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {players.map((p, idx) => (
-                    <TableRow key={idx} hover>
-                      <TableCell>{p.name}</TableCell>
-                      <TableCell>{p.dateOfBirth}</TableCell>
-                      <TableCell>{p.nationality}</TableCell>
-                      <TableCell>{p.positionPlayer}</TableCell>
-                      <TableCell>{p.club}</TableCell>
-                      <TableCell>
-                        <IconButton color="primary" onClick={() => handleEdit(idx)}><EditIcon /></IconButton>
-                        <IconButton color="error" onClick={() => handleDelete(idx)}><DeleteIcon /></IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-        </Grid>
+        <PlayerManagement
+          players={players}
+          clubs={clubs}
+          form={form}
+          editIndex={editIndex}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
+          setForm={setForm}
+          initialForm={initialForm}
+        />
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#37003c', fontWeight: 'bold' }}>Club Management</Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Add New Club</Typography>
-                <Box component="form" onSubmit={handleClubSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <TextField label="Club Name" name="name" value={clubForm.name} onChange={(e) => setClubForm({...clubForm, name: e.target.value})} required />
-                  <TextField label="Founded Year" name="founded" value={clubForm.founded} onChange={(e) => setClubForm({...clubForm, founded: e.target.value})} required />
-                  <TextField label="Stadium" name="stadium" value={clubForm.stadium} onChange={(e) => setClubForm({...clubForm, stadium: e.target.value})} required />
-                  <TextField label="Manager" name="manager" value={clubForm.manager} onChange={(e) => setClubForm({...clubForm, manager: e.target.value})} required />
-                  <TextField label="Location" name="location" value={clubForm.location} onChange={(e) => setClubForm({...clubForm, location: e.target.value})} required />
-                  <TextField label="Website" name="website" value={clubForm.website} onChange={(e) => setClubForm({...clubForm, website: e.target.value})} />
-                  <Button type="submit" variant="contained" color="primary" sx={{ bgcolor: '#37003c', '&:hover': { bgcolor: '#4a0052' } }}>
-                    {editClubIndex !== null ? 'Update Club' : 'Add Club'}
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
-              <Table>
-                <TableHead sx={{ bgcolor: '#37003c' }}>
-                  <TableRow>
-                    <TableCell sx={{ color: 'white' }}>Club Name</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Founded</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Stadium</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Manager</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Location</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clubs.map((club, idx) => (
-                    <TableRow key={idx} hover>
-                      <TableCell>{club.name}</TableCell>
-                      <TableCell>{club.founded}</TableCell>
-                      <TableCell>{club.stadium}</TableCell>
-                      <TableCell>{club.manager}</TableCell>
-                      <TableCell>{club.location}</TableCell>
-                      <TableCell>
-                        <IconButton color="primary" onClick={() => {
-                          setClubForm(club);
-                          setEditClubIndex(idx);
-                        }}><EditIcon /></IconButton>
-                        <IconButton color="error" onClick={() => {
-                          setClubs(clubs.filter((_, i) => i !== idx));
-                          if (editClubIndex === idx) setEditClubIndex(null);
-                        }}><DeleteIcon /></IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-        </Grid>
+        <ClubManagement
+          clubs={clubs}
+          clubForm={clubForm}
+          editClubIndex={editClubIndex}
+          handleClubInputChange={handleClubInputChange}
+          handleClubSubmit={handleClubSubmit}
+          handleEditClub={handleEditClub}
+          handleDeleteClub={handleDeleteClub}
+          setClubForm={setClubForm}
+          initialClubForm={initialClubForm}
+        />
       </TabPanel>
       <TabPanel value={tab} index={2}>
-        <Typography variant="h6" gutterBottom>Stadium Management</Typography>
-        <Box component="form" onSubmit={handleStadiumSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Stadium Name" name="name" value={stadiumForm.name} onChange={(e) => setStadiumForm({...stadiumForm, name: e.target.value})} required />
-          <TextField label="Capacity" name="capacity" value={stadiumForm.capacity} onChange={(e) => setStadiumForm({...stadiumForm, capacity: e.target.value})} required />
-          <TextField label="Location" name="location" value={stadiumForm.location} onChange={(e) => setStadiumForm({...stadiumForm, location: e.target.value})} required />
-          <TextField label="Year Built" name="yearBuilt" value={stadiumForm.yearBuilt} onChange={(e) => setStadiumForm({...stadiumForm, yearBuilt: e.target.value})} required />
-          <Button type="submit" variant="contained" color="primary">{editStadiumIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Stadium Name</TableCell>
-                <TableCell>Capacity</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Year Built</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {stadiums.map((stadium, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{stadium.name}</TableCell>
-                  <TableCell>{stadium.capacity}</TableCell>
-                  <TableCell>{stadium.location}</TableCell>
-                  <TableCell>{stadium.yearBuilt}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setStadiumForm(stadium);
-                      setEditStadiumIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setStadiums(stadiums.filter((_, i) => i !== idx));
-                      if (editStadiumIndex === idx) setEditStadiumIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <FixtureManagement
+          fixtures={fixtures}
+          fixtureForm={fixtureForm}
+          editFixtureIndex={editFixtureIndex}
+          handleFixtureInputChange={handleFixtureInputChange}
+          handleFixtureSubmit={handleFixtureSubmit}
+          handleFixtureEdit={handleFixtureEdit}
+          handleDeleteFixture={handleDeleteFixture}
+          setFixtureForm={setFixtureForm}
+          initialFixtureForm={initialFixtureForm}
+          clubs={clubs}
+        />
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        <Typography variant="h6" gutterBottom>Fixture Management</Typography>
-        <Box component="form" onSubmit={handleFixtureSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Home Team" name="homeTeam" value={fixtureForm.homeTeam} onChange={(e) => setFixtureForm({...fixtureForm, homeTeam: e.target.value})} required />
-          <TextField label="Away Team" name="awayTeam" value={fixtureForm.awayTeam} onChange={(e) => setFixtureForm({...fixtureForm, awayTeam: e.target.value})} required />
-          <TextField label="Date" name="date" type="date" value={fixtureForm.date} onChange={(e) => setFixtureForm({...fixtureForm, date: e.target.value})} InputLabelProps={{ shrink: true }} required />
-          <TextField label="Time" name="time" type="time" value={fixtureForm.time} onChange={(e) => setFixtureForm({...fixtureForm, time: e.target.value})} InputLabelProps={{ shrink: true }} required />
-          <TextField label="Stadium" name="stadium" value={fixtureForm.stadium} onChange={(e) => setFixtureForm({...fixtureForm, stadium: e.target.value})} required />
-          <Button type="submit" variant="contained" color="primary">{editFixtureIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Home Team</TableCell>
-                <TableCell>Away Team</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell>Stadium</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {fixtures.map((fixture, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{fixture.homeTeam}</TableCell>
-                  <TableCell>{fixture.awayTeam}</TableCell>
-                  <TableCell>{fixture.date}</TableCell>
-                  <TableCell>{fixture.time}</TableCell>
-                  <TableCell>{fixture.stadium}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setFixtureForm(fixture);
-                      setEditFixtureIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setFixtures(fixtures.filter((_, i) => i !== idx));
-                      if (editFixtureIndex === idx) setEditFixtureIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </TabPanel>
-      <TabPanel value={tab} index={4}>
-        <Typography variant="h6" gutterBottom>Result Management</Typography>
-        <Box component="form" onSubmit={handleResultSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Home Team" name="homeTeam" value={resultForm.homeTeam} onChange={(e) => setResultForm({...resultForm, homeTeam: e.target.value})} required />
-          <TextField label="Away Team" name="awayTeam" value={resultForm.awayTeam} onChange={(e) => setResultForm({...resultForm, awayTeam: e.target.value})} required />
-          <TextField label="Home Score" name="homeScore" type="number" value={resultForm.homeScore} onChange={(e) => setResultForm({...resultForm, homeScore: e.target.value})} required />
-          <TextField label="Away Score" name="awayScore" type="number" value={resultForm.awayScore} onChange={(e) => setResultForm({...resultForm, awayScore: e.target.value})} required />
-          <TextField label="Date" name="date" type="date" value={resultForm.date} onChange={(e) => setResultForm({...resultForm, date: e.target.value})} InputLabelProps={{ shrink: true }} required />
-          <Button type="submit" variant="contained" color="primary">{editResultIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Home Team</TableCell>
-                <TableCell>Away Team</TableCell>
-                <TableCell>Home Score</TableCell>
-                <TableCell>Away Score</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {results.map((result, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{result.homeTeam}</TableCell>
-                  <TableCell>{result.awayTeam}</TableCell>
-                  <TableCell>{result.homeScore}</TableCell>
-                  <TableCell>{result.awayScore}</TableCell>
-                  <TableCell>{result.date}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setResultForm(result);
-                      setEditResultIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setResults(results.filter((_, i) => i !== idx));
-                      if (editResultIndex === idx) setEditResultIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </TabPanel>
-      <TabPanel value={tab} index={5}>
-        <Typography variant="h6" gutterBottom>Standing Management</Typography>
-        <Box component="form" onSubmit={handleStandingSubmit} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-          <TextField label="Team" name="team" value={standingForm.team} onChange={(e) => setStandingForm({...standingForm, team: e.target.value})} required />
-          <TextField label="Played" name="played" type="number" value={standingForm.played} onChange={(e) => setStandingForm({...standingForm, played: e.target.value})} required />
-          <TextField label="Won" name="won" type="number" value={standingForm.won} onChange={(e) => setStandingForm({...standingForm, won: e.target.value})} required />
-          <TextField label="Drawn" name="drawn" type="number" value={standingForm.drawn} onChange={(e) => setStandingForm({...standingForm, drawn: e.target.value})} required />
-          <TextField label="Lost" name="lost" type="number" value={standingForm.lost} onChange={(e) => setStandingForm({...standingForm, lost: e.target.value})} required />
-          <TextField label="Points" name="points" type="number" value={standingForm.points} onChange={(e) => setStandingForm({...standingForm, points: e.target.value})} required />
-          <Button type="submit" variant="contained" color="primary">{editStandingIndex !== null ? 'Update' : 'Add'}</Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Team</TableCell>
-                <TableCell>Played</TableCell>
-                <TableCell>Won</TableCell>
-                <TableCell>Drawn</TableCell>
-                <TableCell>Lost</TableCell>
-                <TableCell>Points</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {standings.map((standing, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{standing.team}</TableCell>
-                  <TableCell>{standing.played}</TableCell>
-                  <TableCell>{standing.won}</TableCell>
-                  <TableCell>{standing.drawn}</TableCell>
-                  <TableCell>{standing.lost}</TableCell>
-                  <TableCell>{standing.points}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => {
-                      setStandingForm(standing);
-                      setEditStandingIndex(idx);
-                    }}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => {
-                      setStandings(standings.filter((_, i) => i !== idx));
-                      if (editStandingIndex === idx) setEditStandingIndex(null);
-                    }}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <StandingManagement
+          standings={standings}
+          standingForm={standingForm}
+          editStandingIndex={editStandingIndex}
+          handleStandingInputChange={handleStandingInputChange}
+          handleStandingSubmit={handleStandingSubmit}
+          handleStandingEdit={handleStandingEdit}
+          handleDeleteStanding={handleDeleteStanding}
+          setStandingForm={setStandingForm}
+          initialStandingForm={initialStandingForm}
+          clubs={clubs}
+        />
       </TabPanel>
       <Partners />
     </Box>
